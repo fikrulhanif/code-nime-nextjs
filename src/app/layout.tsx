@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import { Toaster } from "sonner";
 import { Header } from "@/components/navigation/header";
 import { MobileNav } from "@/components/navigation/mobile-nav";
+import { TrailerModal } from "@/components/ui/trailer-modal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,6 +38,7 @@ export default function RootLayout({
           <Header />
           <MobileNav />
           <main className="flex-1">{children}</main>
+          <TrailerModal />
           <Toaster position="top-right" richColors />
         </Providers>
       </body>
