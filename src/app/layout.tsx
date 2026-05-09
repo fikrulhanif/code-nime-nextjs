@@ -18,9 +18,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CodeNime - Premium Anime Discovery Platform",
+  title: "CodeNime",
   description:
-    "Discover, browse, and track anime with CodeNime - Your premium anime discovery platform",
+    "Discover, browse, and track anime with CodeNime discovery platform",
 };
 
 export default function RootLayout({
