@@ -20,8 +20,8 @@ export const useUIStore = create<UIState>()(
       mobileNavOpen: false,
       searchFocused: false,
 
-      // Theme (default to dark)
-      theme: "dark",
+      // Theme (default to light as per requirements)
+      theme: "light",
 
       // Actions
       openTrailerModal: (url: string, title: string) => {
@@ -56,13 +56,15 @@ export const useUIStore = create<UIState>()(
       toggleTheme: () => {
         const { theme } = get();
         const newTheme = theme === "dark" ? "light" : "dark";
-        set({ theme: newTheme });
 
-        // Apply theme to document
+        // Apply theme to document immediately (within 100ms requirement)
         if (typeof document !== "undefined") {
           document.documentElement.classList.remove("dark", "light");
           document.documentElement.classList.add(newTheme);
         }
+
+        // Update state (this triggers localStorage persistence within 500ms via zustand persist)
+        set({ theme: newTheme });
       },
     }),
     {
@@ -106,19 +108,34 @@ export const useUIStore = create<UIState>()(
       }),
       // Only persist theme, not modal/navigation states
       partialize: (state) => ({ theme: state.theme }),
-      // Apply theme on rehydration
+      // Apply theme on rehydration with validation
       onRehydrateStorage: () => (state) => {
         if (state && typeof document !== "undefined") {
+          // Validate theme value, default to light if invalid
+          const validTheme =
+            state.theme === "dark" || state.theme === "light"
+              ? state.theme
+              : "light";
+
+          if (validTheme !== state.theme) {
+            console.warn(
+              `Invalid theme value "${state.theme}" found, defaulting to light`,
+            );
+            state.theme = validTheme;
+          }
+
           document.documentElement.classList.remove("dark", "light");
-          document.documentElement.classList.add(state.theme);
+          document.documentElement.classList.add(validTheme);
         }
       },
     },
   ),
 );
 
-// Initialize theme on client side
+// Initialize theme on client side with validation
 if (typeof window !== "undefined") {
   const state = useUIStore.getState();
-  document.documentElement.classList.add(state.theme);
+  const validTheme =
+    state.theme === "dark" || state.theme === "light" ? state.theme : "light";
+  document.documentElement.classList.add(validTheme);
 }
