@@ -177,29 +177,46 @@ function HeroSlide({ anime, isActive }: HeroSlideProps) {
       : anime.synopsis
     : "No synopsis available.";
 
-  // Get backdrop image (use large image as backdrop)
-  const backdropUrl =
-    anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url;
+  // Get backdrop image (use highest quality available)
+  const getBackdropUrl = (): string => {
+    // For hero banners, we want wide images, not posters
+    // Try webp first (usually better quality), then jpg
+    let url =
+      anime.images?.webp?.large_image_url ||
+      anime.images?.jpg?.large_image_url ||
+      anime.images?.webp?.image_url ||
+      anime.images?.jpg?.image_url;
+
+    if (url) {
+      // Remove the 'l' before .jpg/.webp to get full-size image
+      url = url.replace(/l\.(jpg|webp)$/, ".$1");
+    }
+
+    return url || "";
+  };
+
+  const backdropUrl = getBackdropUrl();
 
   return (
     <div className="relative w-full h-full">
       {/* Backdrop Image */}
-      <div className="absolute inset-0 w-full h-full">
+      <div className="absolute inset-0 w-full h-full overflow-hidden">
         {backdropUrl ? (
           <Image
             src={backdropUrl}
             alt={anime.title}
             fill
             priority={isActive}
-            className="object-cover"
+            className="object-cover object-center"
             sizes="100vw"
+            quality={95}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-purple-900 via-blue-900 to-black" />
         )}
         {/* Gradient overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent" />
       </div>
 
       {/* Content with Glassmorphism */}

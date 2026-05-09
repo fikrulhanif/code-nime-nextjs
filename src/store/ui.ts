@@ -131,11 +131,3 @@ export const useUIStore = create<UIState>()(
     },
   ),
 );
-
-// Initialize theme on client side with validation
-if (typeof window !== "undefined") {
-  const state = useUIStore.getState();
-  const validTheme =
-    state.theme === "dark" || state.theme === "light" ? state.theme : "light";
-  document.documentElement.classList.add(validTheme);
-}
