@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation, Keyboard } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
@@ -11,6 +10,7 @@ import { useWatchlistStore } from "@/store/watchlist";
 import { useUIStore } from "@/store/ui";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 
 // Import Swiper styles
 import "swiper/css";
@@ -202,7 +202,7 @@ function HeroSlide({ anime, isActive }: HeroSlideProps) {
       {/* Backdrop Image */}
       <div className="absolute inset-0 w-full h-full overflow-hidden">
         {backdropUrl ? (
-          <Image
+          <OptimizedImage
             src={backdropUrl}
             alt={anime.title}
             fill
@@ -210,6 +210,7 @@ function HeroSlide({ anime, isActive }: HeroSlideProps) {
             className="object-cover object-center"
             sizes="100vw"
             quality={95}
+            showBlurPlaceholder={true}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-purple-900 via-blue-900 to-black" />

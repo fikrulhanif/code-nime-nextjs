@@ -28,9 +28,11 @@ export function MobileNav({ className }: MobileNavProps) {
   );
   const watchlistCount = getWatchlistCount();
 
-  // Close drawer on route change
+  // Close drawer on route change (only if it's open)
   useEffect(() => {
-    toggleMobileNav();
+    if (mobileNavOpen) {
+      toggleMobileNav();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 

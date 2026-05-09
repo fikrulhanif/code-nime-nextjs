@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Anime } from "@/types/anime";
 import { useWatchlistStore } from "@/store/watchlist";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 import { Plus, Check } from "lucide-react";
 
 interface AnimeCardProps {
@@ -55,15 +55,6 @@ export function AnimeCard({
       return "N/A";
     }
     return `${score.toFixed(2)}/10.00`;
-  };
-
-  // Get poster image URL with fallback
-  const getPosterUrl = (): string => {
-    return (
-      anime.images?.jpg?.image_url ||
-      anime.images?.webp?.image_url ||
-      "/placeholder-anime.jpg"
-    );
   };
 
   // Handle card click navigation
@@ -158,18 +149,13 @@ export function AnimeCard({
           posterHeights[variant],
         )}
       >
-        <Image
-          src={getPosterUrl()}
+        <OptimizedImage
+          anime={anime}
           alt={anime.title}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          showBlurPlaceholder={true}
           className="object-cover"
-          loading="lazy"
-          onError={(e) => {
-            // Fallback to a solid color background if image fails
-            const target = e.target as HTMLImageElement;
-            target.style.display = "none";
-          }}
         />
       </div>
 
