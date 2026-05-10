@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import {
   fetchTopAnime,
   fetchTrendingAnime,
@@ -10,13 +11,21 @@ import { HeroBanner, SectionCarousel } from "@/components/home";
 import { HeroSkeleton } from "@/components/loading";
 
 export default function Home() {
-  // Fetch top anime for hero banner - reduced to 5 for faster load
-  const { data: heroAnime, isLoading: heroLoading } = useQuery({
-    queryKey: ["hero-anime"],
-    queryFn: () => fetchTopAnime(5),
+  const [enableSeasonal, setEnableSeasonal] = useState(false);
+
+  // Fetch top anime ONCE for both hero and top rated section - optimized to reduce API calls
+  const { data: topAnimeData, isLoading: topAnimeLoading } = useQuery({
+    queryKey: ["top-anime-combined"],
+    queryFn: () => fetchTopAnime(15), // Fetch 15 items, use first 5 for hero
     staleTime: 600000,
     gcTime: 1200000,
   });
+
+  // Split data for hero (first 5) and top rated (all 15)
+  const heroAnime = topAnimeData?.slice(0, 5);
+  const topRatedAnime = topAnimeData;
+  const heroLoading = topAnimeLoading;
+  const topRatedLoading = topAnimeLoading;
 
   // Fetch trending anime - reduced to 15
   const {
@@ -31,42 +40,70 @@ export default function Home() {
     gcTime: 1200000,
   });
 
-  // Fetch top-rated anime - reduced to 15
-  const {
-    data: topRatedAnime,
-    isLoading: topRatedLoading,
-    error: topRatedError,
-    refetch: refetchTopRated,
-  } = useQuery({
-    queryKey: ["top-rated-anime"],
-    queryFn: () => fetchTopAnime(15),
-    staleTime: 600000,
-    gcTime: 1200000,
-  });
+  // Enable seasonal query after top anime is loaded (avoid rate limit)
+  useEffect(() => {
+    if (topAnimeData && topAnimeData.length > 0) {
+      const timer = setTimeout(() => {
+        setEnableSeasonal(true);
+      }, 1000); // 1 second delay after top anime loads
+
+      return () => clearTimeout(timer);
+    }
+  }, [topAnimeData]);
 
   // Fetch seasonal anime with fallback - reduced to 15
+  // This query is delayed to avoid rate limiting conflicts
   const {
     data: seasonalAnime,
     isLoading: seasonalLoading,
     error: seasonalError,
     refetch: refetchSeasonal,
   } = useQuery({
-    queryKey: ["seasonal-anime-homepage-v2"],
+    queryKey: ["seasonal-anime-homepage-v4"],
     queryFn: async () => {
+      console.log("Fetching seasonal anime...");
       try {
         const result = await fetchSeasonalAnime(undefined, undefined, 15);
-        if (result && result.length > 0) {
+        console.log("Seasonal anime result:", result?.length || 0, "items");
+
+        // Check if result is valid and has data
+        if (result && Array.isArray(result) && result.length > 0) {
           return result;
         }
-        return fetchTopAnime(15);
+
+        // If empty or invalid, use fallback
+        console.log("Seasonal anime empty, using fallback (top anime)");
+
+        // Try to use already fetched topRatedAnime first to avoid extra API call
+        if (topRatedAnime && topRatedAnime.length > 0) {
+          console.log("Using cached top rated anime as fallback");
+          return topRatedAnime;
+        }
+
+        const fallback = await fetchTopAnime(15);
+        console.log("Fallback result:", fallback?.length || 0, "items");
+        return fallback;
       } catch (error) {
-        return fetchTopAnime(15);
+        console.error("Seasonal anime error, using fallback:", error);
+
+        // Try to use already fetched topRatedAnime first
+        if (topRatedAnime && topRatedAnime.length > 0) {
+          console.log("Using cached top rated anime as fallback (error case)");
+          return topRatedAnime;
+        }
+
+        const fallback = await fetchTopAnime(15);
+        return fallback;
       }
     },
-    staleTime: 600000, // Increased to 10 minutes
-    gcTime: 1200000,
-    retry: 1, // Reduced retry attempts
-    retryDelay: 2000,
+    enabled: enableSeasonal, // Only run after delay
+    placeholderData: topRatedAnime, // Use top rated as placeholder while loading
+    staleTime: 600000, // 10 minutes
+    gcTime: 1200000, // 20 minutes
+    retry: 3, // Increased retry attempts
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Exponential backoff
+    refetchOnMount: false, // Don't refetch on mount if data exists
+    refetchOnWindowFocus: false, // Don't refetch on window focus
   });
 
   return (
@@ -92,8 +129,8 @@ export default function Home() {
         title="Top Rated"
         anime={topRatedAnime || []}
         isLoading={topRatedLoading}
-        error={topRatedError as Error | null}
-        onRetry={() => refetchTopRated()}
+        error={null}
+        onRetry={() => window.location.reload()}
       />
 
       {/* Seasonal Anime Section */}

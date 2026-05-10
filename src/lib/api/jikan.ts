@@ -98,12 +98,31 @@ export async function fetchSeasonalAnime(
 
     console.log("fetchSeasonalAnime response:", response);
 
-    if (!response || !response.data || !Array.isArray(response.data)) {
-      console.error("fetchSeasonalAnime: Invalid response structure", response);
+    // Strict validation of response structure
+    if (!response) {
+      console.error("fetchSeasonalAnime: No response received");
       return [];
     }
 
-    console.log("fetchSeasonalAnime data length:", response.data.length);
+    if (!response.data) {
+      console.error("fetchSeasonalAnime: Response has no data field");
+      return [];
+    }
+
+    if (!Array.isArray(response.data)) {
+      console.error(
+        "fetchSeasonalAnime: Response data is not an array",
+        typeof response.data,
+      );
+      return [];
+    }
+
+    if (response.data.length === 0) {
+      console.warn("fetchSeasonalAnime: API returned empty array");
+      return [];
+    }
+
+    console.log("fetchSeasonalAnime: Success -", response.data.length, "items");
     return response.data;
   } catch (error) {
     console.error("fetchSeasonalAnime error:", error);
