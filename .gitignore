@@ -40,28 +40,46 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-
 # IDE
 .vscode/
 !.vscode/extensions.json
 !.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
 
 # local env
 .env.local
 .env.development.local
+.env.test.local
 .env.production.local
 
 # logs
 *.log
+logs/
 
 # turbopack
 .turbo
 
 # cache
 .cache
+.eslintcache
 
 # Kiro AI workspace
 .kiro/
 
+# AI Assistant files
 AGENTS.md
 CLAUDE.md
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+.temp/
+.tmp/
