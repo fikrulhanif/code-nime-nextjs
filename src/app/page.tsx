@@ -10,15 +10,15 @@ import { HeroBanner, SectionCarousel } from "@/components/home";
 import { HeroSkeleton } from "@/components/loading";
 
 export default function Home() {
-  // Fetch top anime for hero banner
+  // Fetch top anime for hero banner - reduced to 5 for faster load
   const { data: heroAnime, isLoading: heroLoading } = useQuery({
     queryKey: ["hero-anime"],
-    queryFn: () => fetchTopAnime(10),
+    queryFn: () => fetchTopAnime(5),
     staleTime: 600000,
     gcTime: 1200000,
   });
 
-  // Fetch trending anime (top airing)
+  // Fetch trending anime - reduced to 15
   const {
     data: trendingAnime,
     isLoading: trendingLoading,
@@ -26,12 +26,12 @@ export default function Home() {
     refetch: refetchTrending,
   } = useQuery({
     queryKey: ["trending-anime"],
-    queryFn: () => fetchTrendingAnime(20),
+    queryFn: () => fetchTrendingAnime(15),
     staleTime: 600000,
     gcTime: 1200000,
   });
 
-  // Fetch top-rated anime
+  // Fetch top-rated anime - reduced to 15
   const {
     data: topRatedAnime,
     isLoading: topRatedLoading,
@@ -39,54 +39,34 @@ export default function Home() {
     refetch: refetchTopRated,
   } = useQuery({
     queryKey: ["top-rated-anime"],
-    queryFn: () => fetchTopAnime(20),
+    queryFn: () => fetchTopAnime(15),
     staleTime: 600000,
     gcTime: 1200000,
   });
 
-  // Fetch seasonal anime with fallback
+  // Fetch seasonal anime with fallback - reduced to 15
   const {
     data: seasonalAnime,
     isLoading: seasonalLoading,
     error: seasonalError,
     refetch: refetchSeasonal,
   } = useQuery({
-    queryKey: ["seasonal-anime-homepage-v2"], // Changed key to force refresh
+    queryKey: ["seasonal-anime-homepage-v2"],
     queryFn: async () => {
-      console.log("Homepage: Fetching seasonal anime...");
       try {
-        // Try to fetch seasonal anime first
-        const result = await fetchSeasonalAnime(undefined, undefined, 20);
-        console.log(
-          "Homepage: Seasonal anime result:",
-          result?.length || 0,
-          "items",
-        );
-
-        // If we got data, return it
+        const result = await fetchSeasonalAnime(undefined, undefined, 15);
         if (result && result.length > 0) {
           return result;
         }
-
-        // If no data, fallback to top anime (different from trending)
-        console.log("Homepage: Seasonal empty, using top anime as fallback");
-        const fallback = await fetchTopAnime(20);
-        console.log(
-          "Homepage: Fallback result:",
-          fallback?.length || 0,
-          "items",
-        );
-        return fallback;
+        return fetchTopAnime(15);
       } catch (error) {
-        console.error("Homepage: Seasonal anime error:", error);
-        // On error, use top anime as fallback
-        return fetchTopAnime(20);
+        return fetchTopAnime(15);
       }
     },
-    staleTime: 300000, // 5 minutes
-    gcTime: 600000, // 10 minutes
-    retry: 2,
-    retryDelay: 1000,
+    staleTime: 600000, // Increased to 10 minutes
+    gcTime: 1200000,
+    retry: 1, // Reduced retry attempts
+    retryDelay: 2000,
   });
 
   return (

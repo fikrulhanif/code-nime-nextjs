@@ -187,7 +187,7 @@ export function SectionCarousel({
         </div>
 
         {/* Carousel Container */}
-        <div className="relative group">
+        <div className="relative">
           {/* Previous Arrow */}
           <button
             onClick={handlePrev}
@@ -204,7 +204,7 @@ export function SectionCarousel({
               "bg-background/80 backdrop-blur-sm border border-border",
               "flex items-center justify-center",
               "transition-all duration-200",
-              "opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
+              "opacity-0 hover:opacity-100 focus-visible:opacity-100",
               "hover:bg-background hover:scale-110",
               "disabled:opacity-0 disabled:cursor-not-allowed",
               "-translate-x-1/2",
@@ -232,7 +232,7 @@ export function SectionCarousel({
               "bg-background/80 backdrop-blur-sm border border-border",
               "flex items-center justify-center",
               "transition-all duration-200",
-              "opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
+              "opacity-0 hover:opacity-100 focus-visible:opacity-100",
               "hover:bg-background hover:scale-110",
               "disabled:opacity-0 disabled:cursor-not-allowed",
               "translate-x-1/2",

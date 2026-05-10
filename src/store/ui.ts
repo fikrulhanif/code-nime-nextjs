@@ -20,8 +20,8 @@ export const useUIStore = create<UIState>()(
       mobileNavOpen: false,
       searchFocused: false,
 
-      // Theme (default to light as per requirements)
-      theme: "light",
+      // Theme (default to dark for better visual experience)
+      theme: "dark",
 
       // Actions
       openTrailerModal: (url: string, title: string) => {
@@ -120,15 +120,15 @@ export const useUIStore = create<UIState>()(
       // Apply theme on rehydration with validation
       onRehydrateStorage: () => (state) => {
         if (state && typeof document !== "undefined") {
-          // Validate theme value, default to light if invalid
+          // Validate theme value, default to dark if invalid
           const validTheme =
             state.theme === "dark" || state.theme === "light"
               ? state.theme
-              : "light";
+              : "dark";
 
           if (validTheme !== state.theme) {
             console.warn(
-              `Invalid theme value "${state.theme}" found, defaulting to light`,
+              `Invalid theme value "${state.theme}" found, defaulting to dark`,
             );
             state.theme = validTheme;
           }

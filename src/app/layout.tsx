@@ -33,8 +33,25 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+      suppressHydrationWarning
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const theme = localStorage.getItem('codenime_theme');
+                const parsedTheme = theme ? JSON.parse(theme) : null;
+                const selectedTheme = parsedTheme?.state?.theme || 'dark';
+                document.documentElement.classList.add(selectedTheme);
+              } catch (e) {
+                document.documentElement.classList.add('dark');
+              }
+            `,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col pt-16">
         <Providers>
           <Header />

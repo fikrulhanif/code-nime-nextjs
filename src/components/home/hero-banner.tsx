@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation, Keyboard } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
-import { Play, Plus, Check } from "lucide-react";
+import { Play, Plus, Check, Info } from "lucide-react";
 import { Anime } from "@/types/anime";
 import { useWatchlistStore } from "@/store/watchlist";
 import { useUIStore } from "@/store/ui";
@@ -152,7 +153,7 @@ export function HeroBanner({
                 pauseAutoplayTemporarily();
               }
             }}
-            className={`h-1 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
+            className={`h-1 rounded-full transition-all duration-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
               index === activeIndex
                 ? "w-8 bg-white"
                 : "w-4 bg-white/50 hover:bg-white/75"
@@ -173,9 +174,14 @@ interface HeroSlideProps {
 }
 
 function HeroSlide({ anime, isActive }: HeroSlideProps) {
+  const router = useRouter();
   const { addToWatchlist, isInWatchlist } = useWatchlistStore();
   const { openTrailerModal } = useUIStore();
   const inWatchlist = isInWatchlist(anime.mal_id);
+
+  const handleViewDetails = () => {
+    router.push(`/anime/${anime.mal_id}`);
+  };
 
   const handleWatchTrailer = () => {
     // Check if trailer is available
@@ -316,6 +322,14 @@ function HeroSlide({ anime, isActive }: HeroSlideProps) {
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-3">
+                <Button
+                  onClick={handleViewDetails}
+                  size="lg"
+                  className="bg-purple-600 text-white hover:bg-purple-700 font-semibold shadow-lg"
+                >
+                  <Info className="w-5 h-5 mr-2" />
+                  View Details
+                </Button>
                 <Button
                   onClick={handleWatchTrailer}
                   size="lg"
