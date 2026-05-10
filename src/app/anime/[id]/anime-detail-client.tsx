@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   fetchAnimeDetails,
   fetchAnimeCharacters,
+  fetchAnimeEpisodes,
   fetchAnimeRecommendations,
 } from "@/lib/api/jikan";
 import { DetailSkeleton } from "@/components/loading/detail-skeleton";
@@ -38,11 +39,35 @@ export default function AnimeDetailClient({ animeId }: AnimeDetailClientProps) {
   });
 
   // Fetch characters
-  const { data: characters = [], isLoading: isLoadingCharacters } = useQuery({
+  const {
+    data: charactersData = [],
+    isLoading: isLoadingCharacters,
+    error: charactersError,
+  } = useQuery({
     queryKey: ["anime", animeId, "characters"],
-    queryFn: () => fetchAnimeCharacters(animeId),
+    queryFn: async () => {
+      const data = await fetchAnimeCharacters(animeId);
+      console.log("Characters data:", data);
+      return data;
+    },
     enabled: !isNaN(animeId) && animeId > 0,
   });
+
+  // Extract characters from response
+  const characters = charactersData || [];
+
+  // Fetch episodes
+  const {
+    data: episodesData,
+    isLoading: isLoadingEpisodes,
+    error: episodesError,
+  } = useQuery({
+    queryKey: ["anime", animeId, "episodes"],
+    queryFn: () => fetchAnimeEpisodes(animeId, 1),
+    enabled: !isNaN(animeId) && animeId > 0,
+  });
+
+  const episodes = episodesData?.data || [];
 
   // Fetch recommendations
   const { data: recommendations = [], isLoading: isLoadingRecommendations } =
@@ -359,44 +384,129 @@ export default function AnimeDetailClient({ animeId }: AnimeDetailClientProps) {
           <section className="space-y-4">
             <h2 className="text-2xl font-bold">Characters</h2>
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {characters.slice(0, 12).map((character) => (
-                <div
-                  key={character.mal_id}
-                  className="flex gap-3 rounded-lg border border-border/50 bg-card p-3"
-                >
-                  {/* Character Image */}
-                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-muted">
-                    <OptimizedImage
-                      src={
-                        character.images?.jpg?.image_url ||
-                        "/placeholder-character.svg"
-                      }
-                      alt={character.name}
-                      fill
-                      className="object-cover"
-                      sizes="64px"
-                      showBlurPlaceholder={true}
-                    />
-                  </div>
+              {characters.slice(0, 12).map((item, index) => {
+                const character = item.character || item;
+                const characterId = character.mal_id || index;
 
-                  {/* Character Info */}
-                  <div className="flex-1 space-y-1 overflow-hidden">
-                    <p className="text-sm font-medium leading-tight line-clamp-2">
-                      {character.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {character.role}
-                    </p>
-                    {character.voice_actors &&
-                      character.voice_actors.length > 0 && (
+                return (
+                  <div
+                    key={`character-${characterId}-${index}`}
+                    className="flex gap-3 rounded-lg border border-border/50 bg-card p-3"
+                  >
+                    {/* Character Image */}
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-muted">
+                      <OptimizedImage
+                        src={
+                          character.images?.jpg?.image_url ||
+                          "/placeholder-character.svg"
+                        }
+                        alt={character.name}
+                        fill
+                        className="object-cover"
+                        sizes="64px"
+                        showBlurPlaceholder={true}
+                      />
+                    </div>
+
+                    {/* Character Info */}
+                    <div className="flex-1 space-y-1 overflow-hidden">
+                      <p className="text-sm font-medium leading-tight line-clamp-2">
+                        {character.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {item.role}
+                      </p>
+                      {item.voice_actors && item.voice_actors.length > 0 && (
                         <p className="text-xs text-muted-foreground line-clamp-1">
-                          {character.voice_actors[0].name}
+                          {item.voice_actors[0].name}
                         </p>
                       )}
+                    </div>
                   </div>
+                );
+              })}
+            </div>
+            {isLoadingCharacters && (
+              <div className="flex justify-center py-4">
+                <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+              </div>
+            )}
+            {charactersError && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Failed to load characters
+              </p>
+            )}
+          </section>
+        )}
+
+        {/* Episodes */}
+        {episodes.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold">Episodes</h2>
+              {episodesData?.pagination?.has_next_page && (
+                <p className="text-sm text-muted-foreground">
+                  Showing {episodes.length} of{" "}
+                  {episodesData.pagination.items.total} episodes
+                </p>
+              )}
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {episodes.map((episode) => (
+                <div
+                  key={episode.mal_id}
+                  className="flex flex-col gap-2 rounded-lg border border-border/50 bg-card p-4 hover:bg-accent/50 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="text-xs">
+                          Ep {episode.mal_id}
+                        </Badge>
+                        {episode.filler && (
+                          <Badge variant="outline" className="text-xs">
+                            Filler
+                          </Badge>
+                        )}
+                        {episode.recap && (
+                          <Badge variant="outline" className="text-xs">
+                            Recap
+                          </Badge>
+                        )}
+                      </div>
+                      <h3 className="text-sm font-medium leading-tight line-clamp-2">
+                        {episode.title || `Episode ${episode.mal_id}`}
+                      </h3>
+                      {episode.title_japanese && (
+                        <p className="text-xs text-muted-foreground line-clamp-1">
+                          {episode.title_japanese}
+                        </p>
+                      )}
+                    </div>
+                    {episode.score && episode.score > 0 && (
+                      <Badge variant="secondary" className="text-xs shrink-0">
+                        ⭐ {episode.score.toFixed(1)}
+                      </Badge>
+                    )}
+                  </div>
+                  {episode.aired && (
+                    <p className="text-xs text-muted-foreground">
+                      Aired: {new Date(episode.aired).toLocaleDateString()}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
+            {isLoadingEpisodes && (
+              <div className="flex justify-center py-4">
+                <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+              </div>
+            )}
+            {episodesError && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Failed to load episodes
+              </p>
+            )}
           </section>
         )}
 

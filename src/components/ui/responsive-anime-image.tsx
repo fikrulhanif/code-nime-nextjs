@@ -72,9 +72,11 @@ export function ResponsiveAnimeImage({
         }
       } else if (character) {
         // Characters only have one image size
+        // Handle both nested and flat character structure
+        const charData = (character as any).character || character;
         url =
-          character.images?.jpg?.image_url ||
-          character.images?.webp?.image_url ||
+          charData.images?.jpg?.image_url ||
+          charData.images?.webp?.image_url ||
           "/placeholder-character.svg";
       }
 

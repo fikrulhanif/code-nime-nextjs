@@ -5,6 +5,7 @@ import {
   Anime,
   AnimeDetail,
   Character,
+  Episode,
   Genre,
   Season,
   AnimeType,
@@ -200,6 +201,35 @@ export async function fetchAnimeCharacters(id: number): Promise<Character[]> {
   });
 
   return response.data;
+}
+
+// Fetch anime episodes
+export async function fetchAnimeEpisodes(
+  id: number,
+  page: number = 1,
+): Promise<{ data: Episode[]; pagination: any }> {
+  try {
+    const response = await makeRequest<
+      JikanAPIResponse<Episode[]> & { pagination: any }
+    >({
+      method: "GET",
+      url: `/anime/${id}/episodes`,
+      params: {
+        page,
+      },
+    });
+
+    return {
+      data: response.data || [],
+      pagination: response.pagination || null,
+    };
+  } catch (error) {
+    console.error("fetchAnimeEpisodes error:", error);
+    return {
+      data: [],
+      pagination: null,
+    };
+  }
 }
 
 // Fetch anime recommendations

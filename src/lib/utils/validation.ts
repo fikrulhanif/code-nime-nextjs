@@ -336,11 +336,14 @@ export function validateCharacter(data: unknown): data is Character {
 
   const character = data as Partial<Character>;
 
-  if (!validateMalId(character.mal_id, "Character")) {
+  // Handle both nested and flat character structure
+  const charData = (character as any).character || character;
+
+  if (!validateMalId(charData.mal_id, "Character")) {
     return false;
   }
 
-  if (!validateTitle(character.name, "Character")) {
+  if (!validateTitle(charData.name, "Character")) {
     return false;
   }
 

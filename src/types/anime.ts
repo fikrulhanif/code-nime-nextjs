@@ -139,16 +139,30 @@ export interface VoiceActor {
 }
 
 export interface Character {
-  mal_id: number;
-  name: string;
-  images: {
-    jpg: {
-      image_url: string;
-    };
-    webp: {
-      image_url: string;
+  character: {
+    mal_id: number;
+    name: string;
+    images: {
+      jpg: {
+        image_url: string;
+      };
+      webp: {
+        image_url: string;
+      };
     };
   };
   role: "Main" | "Supporting";
   voice_actors: VoiceActor[];
+}
+
+export interface Episode {
+  mal_id: number;
+  title: string;
+  title_japanese: string | null;
+  title_romanji: string | null;
+  aired: string | null;
+  score: number | null;
+  filler: boolean;
+  recap: boolean;
+  forum_url: string | null;
 }
