@@ -33,7 +33,6 @@ export function FilterPanel({
   const [genres, setGenres] = useState<Genre[]>([]);
   const [isLoadingGenres, setIsLoadingGenres] = useState(true);
   const [genreError, setGenreError] = useState<string | null>(null);
-  const [localFilters, setLocalFilters] = useState<SearchFilters>(filters);
   const [scoreError, setScoreError] = useState<string | null>(null);
   const [yearError, setYearError] = useState<string | null>(null);
 
@@ -56,110 +55,112 @@ export function FilterPanel({
     loadGenres();
   }, []);
 
-  // Debounce filter changes by 300ms
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onFilterChange(localFilters);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [localFilters, onFilterChange]);
-
-  // Update local filters when external filters change
-  useEffect(() => {
-    setLocalFilters(filters);
-  }, [filters]);
-
-  const handleGenreToggle = useCallback((genreId: number) => {
-    setLocalFilters((prev) => {
-      const isSelected = prev.genres.includes(genreId);
-      return {
-        ...prev,
+  const handleGenreToggle = useCallback(
+    (genreId: number) => {
+      const isSelected = filters.genres.includes(genreId);
+      const newFilters = {
+        ...filters,
         genres: isSelected
-          ? prev.genres.filter((id) => id !== genreId)
-          : [...prev.genres, genreId],
+          ? filters.genres.filter((id) => id !== genreId)
+          : [...filters.genres, genreId],
       };
-    });
-  }, []);
+      onFilterChange(newFilters);
+    },
+    [filters, onFilterChange],
+  );
 
-  const handleTypeChange = useCallback((value: string) => {
-    setLocalFilters((prev) => ({
-      ...prev,
-      type: value === "all" ? null : (value as AnimeType),
-    }));
-  }, []);
+  const handleTypeChange = useCallback(
+    (value: string) => {
+      onFilterChange({
+        ...filters,
+        type: value === "all" ? null : (value as AnimeType),
+      });
+    },
+    [filters, onFilterChange],
+  );
 
-  const handleStatusChange = useCallback((value: string) => {
-    setLocalFilters((prev) => ({
-      ...prev,
-      status: value === "all" ? null : (value as AnimeStatus),
-    }));
-  }, []);
+  const handleStatusChange = useCallback(
+    (value: string) => {
+      onFilterChange({
+        ...filters,
+        status: value === "all" ? null : (value as AnimeStatus),
+      });
+    },
+    [filters, onFilterChange],
+  );
 
-  const handleSeasonChange = useCallback((value: string) => {
-    setLocalFilters((prev) => ({
-      ...prev,
-      season: value === "all" ? null : (value as Season),
-    }));
-  }, []);
+  const handleSeasonChange = useCallback(
+    (value: string) => {
+      onFilterChange({
+        ...filters,
+        season: value === "all" ? null : (value as Season),
+      });
+    },
+    [filters, onFilterChange],
+  );
 
-  const handleScoreChange = useCallback((values: number[]) => {
-    const [min, max] = values;
-    setScoreError(null);
+  const handleScoreChange = useCallback(
+    (values: number[]) => {
+      const [min, max] = values;
+      setScoreError(null);
 
-    // Validate score range
-    if (min < 0 || min > 10 || max < 0 || max > 10) {
-      setScoreError("Score must be between 0 and 10");
-      return;
-    }
+      // Validate score range
+      if (min < 0 || min > 10 || max < 0 || max > 10) {
+        setScoreError("Score must be between 0 and 10");
+        return;
+      }
 
-    setLocalFilters((prev) => ({
-      ...prev,
-      minScore: min === 0 ? null : min,
-      maxScore: max === 10 ? null : max,
-    }));
-  }, []);
+      onFilterChange({
+        ...filters,
+        minScore: min === 0 ? null : min,
+        maxScore: max === 10 ? null : max,
+      });
+    },
+    [filters, onFilterChange],
+  );
 
-  const handleYearChange = useCallback((value: string) => {
-    const year = parseInt(value, 10);
-    const currentYear = new Date().getFullYear();
-    const maxYear = currentYear + 1;
+  const handleYearChange = useCallback(
+    (value: string) => {
+      const year = parseInt(value, 10);
+      const currentYear = new Date().getFullYear();
+      const maxYear = currentYear + 1;
 
-    setYearError(null);
+      setYearError(null);
 
-    if (value === "") {
-      setLocalFilters((prev) => ({ ...prev, year: null }));
-      return;
-    }
+      if (value === "") {
+        onFilterChange({ ...filters, year: null });
+        return;
+      }
 
-    // Validate year range
-    if (isNaN(year) || year < 1960 || year > maxYear) {
-      setYearError(`Year must be between 1960 and ${maxYear}`);
-      return;
-    }
+      // Validate year range
+      if (isNaN(year) || year < 1960 || year > maxYear) {
+        setYearError(`Year must be between 1960 and ${maxYear}`);
+        return;
+      }
 
-    setLocalFilters((prev) => ({ ...prev, year }));
-  }, []);
+      onFilterChange({ ...filters, year });
+    },
+    [filters, onFilterChange],
+  );
 
   const handleReset = useCallback(() => {
-    setLocalFilters(DEFAULT_FILTERS);
+    onFilterChange(DEFAULT_FILTERS);
     setScoreError(null);
     setYearError(null);
-  }, []);
+  }, [onFilterChange]);
 
   const getActiveFilterCount = useCallback(() => {
     let count = 0;
 
-    if (localFilters.genres.length > 0) count++;
-    if (localFilters.type !== null) count++;
-    if (localFilters.status !== null) count++;
-    if (localFilters.season !== null) count++;
-    if (localFilters.minScore !== null || localFilters.maxScore !== null)
-      count++;
-    if (localFilters.year !== null) count++;
+    if (filters.genres.length > 0) count++;
+    if (filters.type !== null) count++;
+    if (filters.status !== null) count++;
+    if (filters.season !== null) count++;
+    if (filters.minScore !== null || filters.maxScore !== null) count++;
+    if (filters.year !== null) count++;
 
     return count;
-  }, [localFilters]);
+  }, [filters]);
 
   const activeCount = getActiveFilterCount();
 
@@ -202,7 +203,7 @@ export function FilterPanel({
               <div key={genre.mal_id} className="flex items-center space-x-2">
                 <Checkbox
                   id={`genre-${genre.mal_id}`}
-                  checked={localFilters.genres.includes(genre.mal_id)}
+                  checked={filters.genres.includes(genre.mal_id)}
                   onCheckedChange={() => handleGenreToggle(genre.mal_id)}
                 />
                 <label
@@ -220,10 +221,7 @@ export function FilterPanel({
       {/* Type Filter */}
       <div className="space-y-3">
         <Label className="text-sm font-medium">Type</Label>
-        <Select
-          value={localFilters.type || "all"}
-          onValueChange={handleTypeChange}
-        >
+        <Select value={filters.type || "all"} onValueChange={handleTypeChange}>
           <SelectTrigger>
             <SelectValue placeholder="Select type" />
           </SelectTrigger>
@@ -243,7 +241,7 @@ export function FilterPanel({
       <div className="space-y-3">
         <Label className="text-sm font-medium">Status</Label>
         <Select
-          value={localFilters.status || "all"}
+          value={filters.status || "all"}
           onValueChange={handleStatusChange}
         >
           <SelectTrigger>
@@ -262,7 +260,7 @@ export function FilterPanel({
       <div className="space-y-3">
         <Label className="text-sm font-medium">Season</Label>
         <Select
-          value={localFilters.season || "all"}
+          value={filters.season || "all"}
           onValueChange={handleSeasonChange}
         >
           <SelectTrigger>
@@ -283,14 +281,14 @@ export function FilterPanel({
         <div className="flex items-center justify-between">
           <Label className="text-sm font-medium">Score Range</Label>
           <span className="text-sm text-muted-foreground">
-            {localFilters.minScore ?? 0} - {localFilters.maxScore ?? 10}
+            {filters.minScore ?? 0} - {filters.maxScore ?? 10}
           </span>
         </div>
         <Slider
           min={0}
           max={10}
           step={0.1}
-          value={[localFilters.minScore ?? 0, localFilters.maxScore ?? 10]}
+          value={[filters.minScore ?? 0, filters.maxScore ?? 10]}
           onValueChange={handleScoreChange}
           className="w-full"
         />
@@ -306,7 +304,7 @@ export function FilterPanel({
           id="year-filter"
           type="number"
           placeholder="e.g., 2024"
-          value={localFilters.year ?? ""}
+          value={filters.year ?? ""}
           onChange={(e) => handleYearChange(e.target.value)}
           min={1960}
           max={new Date().getFullYear() + 1}

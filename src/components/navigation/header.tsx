@@ -2,19 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Search, Menu, ChevronDown } from "lucide-react";
+import { Search, Menu } from "lucide-react";
 import { useUIStore } from "@/store/ui";
 import { useWatchlistStore } from "@/store/watchlist";
 import { SearchBar } from "./search-bar";
 import { ThemeToggle } from "./theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 interface HeaderProps {
@@ -79,46 +73,12 @@ export function Header({ className }: HeaderProps) {
               Upcoming
             </Link>
 
-            {/* Filter Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-sm font-medium gap-1"
-                >
-                  Filter
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48">
-                <DropdownMenuItem asChild>
-                  <Link href="/filter?type=tv" className="cursor-pointer">
-                    TV Series
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/filter?type=movie" className="cursor-pointer">
-                    Movies
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/filter?type=ova" className="cursor-pointer">
-                    OVA
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/filter?type=special" className="cursor-pointer">
-                    Special
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/filter?type=ona" className="cursor-pointer">
-                    ONA
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Link
+              href="/filter"
+              className="text-sm font-medium transition-colors hover:text-primary"
+            >
+              Filter
+            </Link>
 
             <Link
               href="/watchlist"
