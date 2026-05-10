@@ -15,6 +15,11 @@ const nextConfig: NextConfig = {
         hostname: "myanimelist.net",
         pathname: "/images/**",
       },
+      {
+        protocol: "https",
+        hostname: "img.youtube.com",
+        pathname: "/vi/**",
+      },
     ],
   },
 };
