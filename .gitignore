@@ -60,6 +60,8 @@ next-env.d.ts
 # cache
 .cache
 
-
 # Kiro AI workspace
 .kiro/
+
+AGENTS.md
+CLAUDE.md
