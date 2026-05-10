@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Anime } from "@/types/anime";
 import { useWatchlistStore } from "@/store/watchlist";
@@ -16,14 +17,16 @@ interface AnimeCardProps {
   showWatchlistButton?: boolean;
   onCardClick?: (animeId: number) => void;
   className?: string;
+  index?: number; // For staggered animation
 }
 
 export function AnimeCard({
   anime,
   variant = "default",
-  showWatchlistButton = false, // Changed default to false
+  showWatchlistButton = false,
   onCardClick,
   className,
+  index = 0,
 }: AnimeCardProps) {
   const router = useRouter();
   const { addToWatchlist, removeFromWatchlist, isInWatchlist } =
@@ -115,14 +118,23 @@ export function AnimeCard({
   };
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration: 0.4,
+        delay: index * 0.05, // Staggered animation
+        ease: [0.25, 0.1, 0.25, 1],
+      }}
+      whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
+      whileTap={{ scale: 0.98 }}
       onClick={handleCardClick}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       className={cn(
         "group relative flex flex-col rounded-lg overflow-hidden cursor-pointer",
-        "transition-all duration-200 ease-out",
-        "hover:scale-105 hover:shadow-xl hover:z-10",
+        "transition-shadow duration-200 ease-out",
+        "hover:shadow-xl hover:z-10",
         "bg-card border border-border/50",
         className,
       )}
@@ -149,24 +161,39 @@ export function AnimeCard({
 
         {/* Rating Badge */}
         {anime.score && (
-          <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-1 rounded bg-black/80 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: index * 0.05 + 0.2 }}
+            className="absolute top-2 left-2 flex items-center gap-1 px-2 py-1 rounded bg-black/80 backdrop-blur-sm"
+          >
             <span className="text-yellow-400 text-xs">★</span>
             <span className="text-white text-xs font-semibold">
               {anime.score.toFixed(2)}
             </span>
-          </div>
+          </motion.div>
         )}
 
         {/* Type Badge */}
         {anime.type && (
-          <div className="absolute top-2 right-2 px-2 py-1 rounded bg-purple-600 text-white text-xs font-semibold uppercase">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: index * 0.05 + 0.3 }}
+            className="absolute top-2 right-2 px-2 py-1 rounded bg-purple-600 text-white text-xs font-semibold uppercase"
+          >
             {anime.type}
-          </div>
+          </motion.div>
         )}
       </div>
 
       {/* Content */}
-      <div className="p-3 flex flex-col gap-2">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: index * 0.05 + 0.2 }}
+        className="p-3 flex flex-col gap-2"
+      >
         {/* Title */}
         <h3
           className="font-semibold text-sm line-clamp-2 min-h-[2.5rem]"
@@ -179,7 +206,7 @@ export function AnimeCard({
         {anime.year && (
           <p className="text-xs text-muted-foreground">{anime.year}</p>
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

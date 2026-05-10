@@ -48,12 +48,16 @@ export default function UpcomingPage() {
     gcTime: 1200000,
   });
 
+  // Remove duplicates based on mal_id
+  const uniqueAnime = allAnime
+    ? Array.from(new Map(allAnime.map((item) => [item.mal_id, item])).values())
+    : [];
+
   // Filter anime by type
-  const filteredAnime =
-    allAnime?.filter((item) => {
-      if (filter === "all") return true;
-      return item.type?.toLowerCase() === filter;
-    }) || [];
+  const filteredAnime = uniqueAnime.filter((item) => {
+    if (filter === "all") return true;
+    return item.type?.toLowerCase() === filter;
+  });
 
   // Paginate filtered results
   const totalPages = Math.ceil(filteredAnime.length / itemsPerPage);

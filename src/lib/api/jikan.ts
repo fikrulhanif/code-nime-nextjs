@@ -97,8 +97,8 @@ export async function fetchSeasonalAnime(
 
     console.log("fetchSeasonalAnime response:", response);
 
-    if (!response || !response.data) {
-      console.error("fetchSeasonalAnime: Invalid response", response);
+    if (!response || !response.data || !Array.isArray(response.data)) {
+      console.error("fetchSeasonalAnime: Invalid response structure", response);
       return [];
     }
 
@@ -106,6 +106,11 @@ export async function fetchSeasonalAnime(
     return response.data;
   } catch (error) {
     console.error("fetchSeasonalAnime error:", error);
+    // Log more details about the error
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    }
     return [];
   }
 }

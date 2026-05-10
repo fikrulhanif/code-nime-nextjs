@@ -1,11 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import {
-  fetchTopAnime,
-  fetchTrendingAnime,
-  fetchSeasonalAnime,
-} from "@/lib/api/jikan";
+import { fetchTopAnime, fetchTrendingAnime } from "@/lib/api/jikan";
 import { HeroBanner, SectionCarousel } from "@/components/home";
 import { HeroSkeleton } from "@/components/loading";
 
@@ -44,7 +40,7 @@ export default function Home() {
     gcTime: 1200000,
   });
 
-  // Fetch seasonal anime - independent query with retry
+  // Fetch seasonal anime - use trending anime as reliable alternative
   const {
     data: seasonalAnime,
     isLoading: seasonalLoading,
@@ -53,23 +49,12 @@ export default function Home() {
   } = useQuery({
     queryKey: ["seasonal-anime-homepage"],
     queryFn: async () => {
-      console.log("Homepage: Fetching seasonal anime...");
-      const result = await fetchSeasonalAnime(undefined, undefined, 20);
-      console.log("Homepage: Seasonal anime result:", result);
-      return result;
+      // Use trending anime (top airing) as a reliable source for "This Season"
+      // The /seasons/now endpoint has been unreliable, so we use top airing anime instead
+      return fetchTrendingAnime(20);
     },
     staleTime: 600000,
     gcTime: 1200000,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
-  });
-
-  // Debug logging
-  console.log("Homepage seasonal state:", {
-    isLoading: seasonalLoading,
-    hasData: !!seasonalAnime,
-    dataLength: seasonalAnime?.length,
-    error: seasonalError,
   });
 
   return (

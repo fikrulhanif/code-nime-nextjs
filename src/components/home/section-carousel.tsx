@@ -293,6 +293,7 @@ export function SectionCarousel({
                   anime={item}
                   variant="default"
                   showWatchlistButton={false}
+                  index={index}
                 />
               </SwiperSlide>
             ))}

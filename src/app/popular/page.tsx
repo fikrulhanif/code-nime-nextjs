@@ -56,12 +56,18 @@ export default function PopularPage() {
     gcTime: 1200000,
   });
 
+  // Remove duplicates based on mal_id
+  const uniqueAnime = result?.data
+    ? Array.from(
+        new Map(result.data.map((item) => [item.mal_id, item])).values(),
+      )
+    : [];
+
   // Filter anime by type
-  const filteredAnime =
-    result?.data.filter((item) => {
-      if (filter === "all") return true;
-      return item.type?.toLowerCase() === filter;
-    }) || [];
+  const filteredAnime = uniqueAnime.filter((item) => {
+    if (filter === "all") return true;
+    return item.type?.toLowerCase() === filter;
+  });
 
   // Paginate filtered results (client-side pagination for filtered data)
   const paginatedAnime = filteredAnime.slice(0, itemsPerPage);

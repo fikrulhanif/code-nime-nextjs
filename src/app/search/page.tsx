@@ -94,7 +94,11 @@ function SearchPageContent() {
   // Update results when initial data changes
   useEffect(() => {
     if (searchData) {
-      setAllResults(searchData.data);
+      // Remove duplicates based on mal_id
+      const uniqueData = Array.from(
+        new Map(searchData.data.map((item) => [item.mal_id, item])).values(),
+      );
+      setAllResults(uniqueData);
       setCurrentPage(1);
       setHasMore(searchData.pagination?.has_next_page || false);
     }
@@ -150,7 +154,13 @@ function SearchPageContent() {
         page: nextPage,
       });
 
-      setAllResults((prev) => [...prev, ...result.data]);
+      // Remove duplicates when appending new results
+      setAllResults((prev) => {
+        const combined = [...prev, ...result.data];
+        return Array.from(
+          new Map(combined.map((item) => [item.mal_id, item])).values(),
+        );
+      });
       setCurrentPage(nextPage);
       setHasMore(result.pagination?.has_next_page || false);
     } catch (error) {
