@@ -7,6 +7,7 @@ import { Header } from "@/components/navigation/header";
 import { MobileNav } from "@/components/navigation/mobile-nav";
 import { Footer } from "@/components/navigation/footer";
 import { TrailerModal } from "@/components/ui/trailer-modal";
+import { PageTransition } from "@/components/ui/page-transition";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,7 +39,9 @@ export default function RootLayout({
         <Providers>
           <Header />
           <MobileNav />
-          <main className="flex-1">{children}</main>
+          <PageTransition>
+            <main className="flex-1">{children}</main>
+          </PageTransition>
           <Footer />
           <TrailerModal />
           <Toaster position="top-right" richColors />
