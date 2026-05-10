@@ -202,22 +202,49 @@ function HeroSlide({ anime, isActive }: HeroSlideProps) {
       : anime.synopsis
     : "No synopsis available.";
 
-  // Get backdrop image (use highest quality available)
-  const getBackdropUrl = (): string => {
-    // For hero banners, we want wide images, not posters
-    // Try webp first (usually better quality), then jpg
-    let url =
-      anime.images?.webp?.large_image_url ||
-      anime.images?.jpg?.large_image_url ||
-      anime.images?.webp?.image_url ||
-      anime.images?.jpg?.image_url;
+  // Extract YouTube video ID from URL
+  const getYouTubeId = (url: string | null): string | null => {
+    if (!url) return null;
 
-    if (url) {
-      // Remove the 'l' before .jpg/.webp to get full-size image
-      url = url.replace(/l\.(jpg|webp)$/, ".$1");
+    // Handle embed URLs (including youtube-nocookie.com)
+    if (
+      url.includes("youtube.com/embed/") ||
+      url.includes("youtube-nocookie.com/embed/")
+    ) {
+      const match = url.match(/\/embed\/([^?&]+)/);
+      return match ? match[1] : null;
     }
 
-    return url || "";
+    // Handle watch URLs
+    if (url.includes("youtube.com/watch")) {
+      const match = url.match(/[?&]v=([^&]+)/);
+      return match ? match[1] : null;
+    }
+
+    // Handle short URLs
+    if (url.includes("youtu.be/")) {
+      const match = url.match(/youtu\.be\/([^?&]+)/);
+      return match ? match[1] : null;
+    }
+
+    return null;
+  };
+
+  // Get backdrop image (use YouTube thumbnail for best quality)
+  const getBackdropUrl = (): string => {
+    // Try to get YouTube ID from url or embed_url
+    const trailerUrl = anime.trailer?.url || anime.trailer?.embed_url || null;
+    const youtubeId = getYouTubeId(trailerUrl);
+
+    if (youtubeId) {
+      // Use YouTube maxresdefault thumbnail (1920x1080)
+      return `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`;
+    }
+
+    // Fallback to anime image (will be blurry for landscape)
+    return (
+      anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url || ""
+    );
   };
 
   const backdropUrl = getBackdropUrl();

@@ -23,10 +23,9 @@ interface MobileNavProps {
 export function MobileNav({ className }: MobileNavProps) {
   const pathname = usePathname();
   const { mobileNavOpen, toggleMobileNav } = useUIStore();
-  const getWatchlistCount = useWatchlistStore(
-    (state) => state.getWatchlistCount,
-  );
-  const watchlistCount = getWatchlistCount();
+  // Subscribe to items array so component re-renders when watchlist changes
+  const watchlistItems = useWatchlistStore((state) => state.items);
+  const watchlistCount = watchlistItems.length;
 
   // Close drawer on route change (only if it's open)
   useEffect(() => {

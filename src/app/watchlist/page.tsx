@@ -140,13 +140,14 @@ export default function WatchlistPage() {
       </div>
 
       {/* Watchlist grid - Requirement 19.2, 19.3, 19.4 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center">
-        {sortedItems.map((item) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        {sortedItems.map((item, index) => (
           <AnimeCard
             key={item.anime.mal_id}
             anime={item.anime}
             variant="default"
             showWatchlistButton={true}
+            index={index}
           />
         ))}
       </div>

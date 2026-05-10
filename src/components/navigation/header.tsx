@@ -23,10 +23,9 @@ interface HeaderProps {
 
 export function Header({ className }: HeaderProps) {
   const { toggleMobileNav } = useUIStore();
-  const getWatchlistCount = useWatchlistStore(
-    (state) => state.getWatchlistCount,
-  );
-  const watchlistCount = getWatchlistCount();
+  // Subscribe to items array so component re-renders when watchlist changes
+  const watchlistItems = useWatchlistStore((state) => state.items);
+  const watchlistCount = watchlistItems.length;
   const [showSearch, setShowSearch] = useState(false);
 
   // Format watchlist count badge

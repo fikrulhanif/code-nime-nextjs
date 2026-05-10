@@ -148,9 +148,12 @@ export function TrailerModal() {
 function extractYouTubeId(url: string): string | null {
   if (!url) return null;
 
-  // Handle embed URLs
-  if (url.includes("youtube.com/embed/")) {
-    const match = url.match(/youtube\.com\/embed\/([^?&]+)/);
+  // Handle embed URLs (including youtube-nocookie.com)
+  if (
+    url.includes("youtube.com/embed/") ||
+    url.includes("youtube-nocookie.com/embed/")
+  ) {
+    const match = url.match(/\/embed\/([^?&]+)/);
     return match ? match[1] : null;
   }
 
