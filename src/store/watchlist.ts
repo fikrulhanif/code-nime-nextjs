@@ -16,6 +16,12 @@ export const useWatchlistStore = create<WatchlistState>()(
       addToWatchlist: (anime: Anime) => {
         const { items, isInWatchlist } = get();
 
+        // Requirement 24.4: Show error for write operations while offline
+        if (!navigator.onLine) {
+          toast.error("Cannot add to watchlist while offline");
+          return;
+        }
+
         // Check for duplicates
         if (isInWatchlist(anime.mal_id)) {
           toast.info("Already in watchlist");
@@ -43,6 +49,12 @@ export const useWatchlistStore = create<WatchlistState>()(
 
       removeFromWatchlist: (animeId: number) => {
         const { items } = get();
+
+        // Requirement 24.4: Show error for write operations while offline
+        if (!navigator.onLine) {
+          toast.error("Cannot remove from watchlist while offline");
+          return;
+        }
 
         try {
           set({

@@ -11,13 +11,11 @@ import { HeroSkeleton } from "@/components/loading";
 
 export default function Home() {
   // Fetch top anime for hero banner
-  const {
-    data: heroAnime,
-    isLoading: heroLoading,
-    error: heroError,
-  } = useQuery({
+  const { data: heroAnime, isLoading: heroLoading } = useQuery({
     queryKey: ["hero-anime"],
     queryFn: () => fetchTopAnime(10),
+    staleTime: 600000,
+    gcTime: 1200000,
   });
 
   // Fetch trending anime (top airing)
@@ -29,6 +27,8 @@ export default function Home() {
   } = useQuery({
     queryKey: ["trending-anime"],
     queryFn: () => fetchTrendingAnime(20),
+    staleTime: 600000,
+    gcTime: 1200000,
   });
 
   // Fetch top-rated anime
@@ -40,17 +40,36 @@ export default function Home() {
   } = useQuery({
     queryKey: ["top-rated-anime"],
     queryFn: () => fetchTopAnime(20),
+    staleTime: 600000,
+    gcTime: 1200000,
   });
 
-  // Fetch seasonal anime
+  // Fetch seasonal anime - independent query with retry
   const {
     data: seasonalAnime,
     isLoading: seasonalLoading,
     error: seasonalError,
     refetch: refetchSeasonal,
   } = useQuery({
-    queryKey: ["seasonal-anime"],
-    queryFn: () => fetchSeasonalAnime(undefined, undefined, 20),
+    queryKey: ["seasonal-anime-homepage"],
+    queryFn: async () => {
+      console.log("Homepage: Fetching seasonal anime...");
+      const result = await fetchSeasonalAnime(undefined, undefined, 20);
+      console.log("Homepage: Seasonal anime result:", result);
+      return result;
+    },
+    staleTime: 600000,
+    gcTime: 1200000,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
+  });
+
+  // Debug logging
+  console.log("Homepage seasonal state:", {
+    isLoading: seasonalLoading,
+    hasData: !!seasonalAnime,
+    dataLength: seasonalAnime?.length,
+    error: seasonalError,
   });
 
   return (

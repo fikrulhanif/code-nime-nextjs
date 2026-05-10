@@ -31,6 +31,12 @@ export function HeroBanner({
   const [activeIndex, setActiveIndex] = useState(0);
   const autoplayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isAutoplayPaused, setIsAutoplayPaused] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -82,12 +88,18 @@ export function HeroBanner({
     };
   }, []);
 
-  if (!anime || anime.length === 0) {
-    return null;
+  if (!anime || anime.length === 0 || !mounted) {
+    return (
+      <div className="relative w-full min-h-[400px] h-[70vh] bg-gradient-to-br from-purple-900 via-blue-900 to-black animate-pulse" />
+    );
   }
 
   return (
-    <div className={`relative w-full min-h-[400px] h-[70vh] ${className}`}>
+    <div
+      className={`relative w-full min-h-[400px] h-[70vh] ${className}`}
+      role="region"
+      aria-label="Featured anime carousel"
+    >
       <Swiper
         modules={[Autoplay, Navigation, Keyboard]}
         spaceBetween={0}
@@ -121,7 +133,11 @@ export function HeroBanner({
       </Swiper>
 
       {/* Slide indicators */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+      <div
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2"
+        role="group"
+        aria-label="Slide navigation"
+      >
         {anime.map((_, index) => (
           <button
             key={index}
@@ -129,12 +145,21 @@ export function HeroBanner({
               swiperRef.current?.slideToLoop(index);
               pauseAutoplayTemporarily();
             }}
-            className={`h-1 rounded-full transition-all duration-300 ${
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                swiperRef.current?.slideToLoop(index);
+                pauseAutoplayTemporarily();
+              }
+            }}
+            className={`h-1 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
               index === activeIndex
                 ? "w-8 bg-white"
                 : "w-4 bg-white/50 hover:bg-white/75"
             }`}
             aria-label={`Go to slide ${index + 1}`}
+            aria-current={index === activeIndex ? "true" : "false"}
+            tabIndex={0}
           />
         ))}
       </div>
@@ -206,7 +231,7 @@ function HeroSlide({ anime, isActive }: HeroSlideProps) {
             src={backdropUrl}
             alt={anime.title}
             fill
-            priority={isActive}
+            priority={isActive} // Requirement 20.2: Priority loading for LCP
             className="object-cover object-center"
             sizes="100vw"
             quality={95}

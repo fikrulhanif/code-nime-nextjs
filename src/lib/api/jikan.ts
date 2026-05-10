@@ -15,29 +15,51 @@ import { SearchFilters } from "@/types/filters";
 
 // Fetch trending anime (top airing)
 export async function fetchTrendingAnime(limit: number = 10): Promise<Anime[]> {
-  const response = await makeRequest<JikanAPIResponse<Anime[]>>({
-    method: "GET",
-    url: "/top/anime",
-    params: {
-      filter: "airing",
-      limit,
-    },
-  });
+  try {
+    const response = await makeRequest<JikanAPIResponse<Anime[]>>({
+      method: "GET",
+      url: "/top/anime",
+      params: {
+        filter: "airing",
+        limit,
+      },
+    });
 
-  return response.data;
+    if (!response || !response.data) {
+      console.error("fetchTrendingAnime: Invalid response", response);
+      return [];
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("fetchTrendingAnime error:", error);
+    return [];
+  }
 }
 
 // Fetch top anime by score
 export async function fetchTopAnime(limit: number = 10): Promise<Anime[]> {
-  const response = await makeRequest<JikanAPIResponse<Anime[]>>({
-    method: "GET",
-    url: "/top/anime",
-    params: {
-      limit,
-    },
-  });
+  try {
+    console.log("fetchTopAnime called with limit:", limit);
+    const response = await makeRequest<JikanAPIResponse<Anime[]>>({
+      method: "GET",
+      url: "/top/anime",
+      params: {
+        limit,
+      },
+    });
+    console.log("fetchTopAnime response:", response);
 
-  return response.data;
+    if (!response || !response.data) {
+      console.error("fetchTopAnime: Invalid response structure", response);
+      return [];
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("fetchTopAnime error:", error);
+    return []; // Return empty array instead of throwing to prevent undefined
+  }
 }
 
 // Fetch seasonal anime (current season)
@@ -46,19 +68,46 @@ export async function fetchSeasonalAnime(
   season?: Season,
   limit: number = 10,
 ): Promise<Anime[]> {
-  const now = new Date();
-  const currentYear = year || now.getFullYear();
-  const currentSeason = season || getCurrentSeason();
+  try {
+    // If no year/season specified, use the /seasons/now endpoint which is more reliable
+    const useNowEndpoint = !year && !season;
 
-  const response = await makeRequest<JikanAPIResponse<Anime[]>>({
-    method: "GET",
-    url: `/seasons/${currentYear}/${currentSeason}`,
-    params: {
-      limit,
-    },
-  });
+    let url: string;
+    if (useNowEndpoint) {
+      url = "/seasons/now";
+      console.log("fetchSeasonalAnime: Using /seasons/now endpoint");
+    } else {
+      const now = new Date();
+      const currentYear = year || now.getFullYear();
+      const currentSeason = season || getCurrentSeason();
+      url = `/seasons/${currentYear}/${currentSeason}`;
+      console.log("fetchSeasonalAnime: Using specific season endpoint", {
+        currentYear,
+        currentSeason,
+      });
+    }
 
-  return response.data;
+    const response = await makeRequest<JikanAPIResponse<Anime[]>>({
+      method: "GET",
+      url,
+      params: {
+        limit: Math.min(limit, 25), // Jikan API max limit is 25
+      },
+    });
+
+    console.log("fetchSeasonalAnime response:", response);
+
+    if (!response || !response.data) {
+      console.error("fetchSeasonalAnime: Invalid response", response);
+      return [];
+    }
+
+    console.log("fetchSeasonalAnime data length:", response.data.length);
+    return response.data;
+  } catch (error) {
+    console.error("fetchSeasonalAnime error:", error);
+    return [];
+  }
 }
 
 // Get current season based on month

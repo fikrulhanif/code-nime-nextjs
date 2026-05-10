@@ -66,6 +66,15 @@ export const useUIStore = create<UIState>()(
         // Update state (this triggers localStorage persistence within 500ms via zustand persist)
         set({ theme: newTheme });
       },
+
+      // Initialize theme on mount
+      initTheme: () => {
+        const { theme } = get();
+        if (typeof document !== "undefined") {
+          document.documentElement.classList.remove("dark", "light");
+          document.documentElement.classList.add(theme);
+        }
+      },
     }),
     {
       name: THEME_STORAGE_KEY,

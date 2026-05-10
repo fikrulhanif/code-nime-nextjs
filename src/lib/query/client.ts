@@ -19,6 +19,11 @@ export const queryClient = new QueryClient({
 
       // Retry failed requests
       retry: (failureCount, error) => {
+        // Requirement 24.2: Don't retry if offline
+        if (!navigator.onLine) {
+          return false;
+        }
+
         // Don't retry on 4xx errors (except 429)
         if (error && typeof error === "object" && "status" in error) {
           const status = (error as { status: number }).status;
@@ -33,8 +38,13 @@ export const queryClient = new QueryClient({
 
       // Exponential backoff for retries
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+
+      // Requirement 24.2: Use cached data when offline
+      networkMode: "offlineFirst",
     },
     mutations: {
+      // Requirement 24.4: Show error for write operations while offline
+      networkMode: "online",
       // Retry mutations once
       retry: 1,
     },

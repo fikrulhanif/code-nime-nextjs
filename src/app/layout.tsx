@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import { Toaster } from "sonner";
 import { Header } from "@/components/navigation/header";
 import { MobileNav } from "@/components/navigation/mobile-nav";
+import { Footer } from "@/components/navigation/footer";
 import { TrailerModal } from "@/components/ui/trailer-modal";
 
 const geistSans = Geist({
@@ -33,11 +34,12 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col pt-16">
         <Providers>
           <Header />
           <MobileNav />
           <main className="flex-1">{children}</main>
+          <Footer />
           <TrailerModal />
           <Toaster position="top-right" richColors />
         </Providers>

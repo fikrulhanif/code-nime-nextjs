@@ -68,7 +68,7 @@ export function MobileNav({ className }: MobileNavProps) {
 
   const navLinks = [
     { href: "/", label: "Home" },
-    { href: "/browse", label: "Browse" },
+    { href: "/search", label: "Search" },
     {
       href: "/watchlist",
       label: "Watchlist",
@@ -103,7 +103,10 @@ export function MobileNav({ className }: MobileNavProps) {
           </SheetClose>
         </SheetHeader>
 
-        <nav className="mt-8 flex flex-col space-y-4">
+        <nav
+          className="mt-8 flex flex-col space-y-4"
+          aria-label="Mobile navigation"
+        >
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -119,6 +122,7 @@ export function MobileNav({ className }: MobileNavProps) {
                 <Badge
                   variant="destructive"
                   className="h-5 min-w-5 px-2 text-xs"
+                  aria-label={`${link.badge} items in watchlist`}
                 >
                   {link.badge}
                 </Badge>

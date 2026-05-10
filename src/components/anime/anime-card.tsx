@@ -21,7 +21,7 @@ interface AnimeCardProps {
 export function AnimeCard({
   anime,
   variant = "default",
-  showWatchlistButton = true,
+  showWatchlistButton = false, // Changed default to false
   onCardClick,
   className,
 }: AnimeCardProps) {
@@ -120,16 +120,10 @@ export function AnimeCard({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       className={cn(
-        "group relative flex flex-col gap-3 rounded-lg border border-border/50 bg-card p-3 cursor-pointer overflow-hidden",
+        "group relative flex flex-col rounded-lg overflow-hidden cursor-pointer",
         "transition-all duration-200 ease-out",
-        // Hover effects for non-touch devices
-        !isTouchDevice &&
-          "hover:scale-105 hover:shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:border-purple-500/50",
-        // Touch effects for touch devices
-        isTouchDevice &&
-          isPressed &&
-          "scale-105 shadow-[0_0_20px_rgba(139,92,246,0.3)] border-purple-500/50",
-        dimensions[variant],
+        "hover:scale-105 hover:shadow-xl hover:z-10",
+        "bg-card border border-border/50",
         className,
       )}
       role="button"
@@ -143,76 +137,49 @@ export function AnimeCard({
       }}
     >
       {/* Poster Image */}
-      <div
-        className={cn(
-          "relative w-full rounded-md overflow-hidden bg-muted",
-          posterHeights[variant],
-        )}
-      >
+      <div className="relative w-full aspect-[2/3] overflow-hidden bg-muted">
         <OptimizedImage
           anime={anime}
           alt={anime.title}
           fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
           showBlurPlaceholder={true}
           className="object-cover"
         />
+
+        {/* Rating Badge */}
+        {anime.score && (
+          <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-1 rounded bg-black/80 backdrop-blur-sm">
+            <span className="text-yellow-400 text-xs">★</span>
+            <span className="text-white text-xs font-semibold">
+              {anime.score.toFixed(2)}
+            </span>
+          </div>
+        )}
+
+        {/* Type Badge */}
+        {anime.type && (
+          <div className="absolute top-2 right-2 px-2 py-1 rounded bg-purple-600 text-white text-xs font-semibold uppercase">
+            {anime.type}
+          </div>
+        )}
       </div>
 
-      {/* Title */}
-      <div className="flex-1 space-y-2">
+      {/* Content */}
+      <div className="p-3 flex flex-col gap-2">
+        {/* Title */}
         <h3
-          className="font-medium text-sm leading-tight line-clamp-2"
+          className="font-semibold text-sm line-clamp-2 min-h-[2.5rem]"
           title={anime.title}
         >
           {anime.title}
         </h3>
 
-        {/* Metadata */}
-        <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">
-              {formatScore(anime.score)}
-            </Badge>
-            <span className="capitalize">{anime.type || "N/A"}</span>
-          </div>
-          <span className="capitalize text-xs">{anime.status || "N/A"}</span>
-        </div>
-
-        {/* Synopsis for detailed variant */}
-        {variant === "detailed" && anime.synopsis && (
-          <p className="text-xs text-muted-foreground line-clamp-3">
-            {truncateSynopsis(anime.synopsis, 150)}
-          </p>
+        {/* Year */}
+        {anime.year && (
+          <p className="text-xs text-muted-foreground">{anime.year}</p>
         )}
       </div>
-
-      {/* Watchlist Button */}
-      {showWatchlistButton && (
-        <Button
-          onClick={handleWatchlistToggle}
-          variant={isInList ? "secondary" : "default"}
-          size="sm"
-          className="w-full min-h-[44px] touch-manipulation"
-          aria-label={
-            isInList
-              ? `Remove ${anime.title} from watchlist`
-              : `Add ${anime.title} to watchlist`
-          }
-        >
-          {isInList ? (
-            <>
-              <Check className="size-4" />
-              Remove from Watchlist
-            </>
-          ) : (
-            <>
-              <Plus className="size-4" />
-              Add to Watchlist
-            </>
-          )}
-        </Button>
-      )}
     </div>
   );
 }

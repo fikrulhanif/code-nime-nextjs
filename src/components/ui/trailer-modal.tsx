@@ -9,6 +9,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
+import { announce } from "@/components/ui/live-region";
 
 export function TrailerModal() {
   const { trailerModal, closeTrailerModal } = useUIStore();
@@ -16,6 +18,7 @@ export function TrailerModal() {
   const [isLoading, setIsLoading] = useState(true);
   const [embedError, setEmbedError] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const focusTrapRef = useFocusTrap(trailerModal.isOpen);
 
   // Extract YouTube video ID from URL
   useEffect(() => {
@@ -24,10 +27,13 @@ export function TrailerModal() {
       setVideoId(extractedId);
       setIsLoading(true);
       setEmbedError(false);
+
+      // Announce modal opening to screen readers
+      announce(`Opening trailer for ${trailerModal.animeTitle}`, "polite");
     } else {
       setVideoId(null);
     }
-  }, [trailerModal.trailerUrl]);
+  }, [trailerModal.trailerUrl, trailerModal.animeTitle]);
 
   // Set loading timeout
   useEffect(() => {
@@ -48,6 +54,10 @@ export function TrailerModal() {
     if (iframeRef.current) {
       iframeRef.current.src = "";
     }
+
+    // Announce modal closing to screen readers
+    announce("Trailer closed", "polite");
+
     closeTrailerModal();
     setIsLoading(true);
     setEmbedError(false);
@@ -55,11 +65,15 @@ export function TrailerModal() {
 
   const handleIframeLoad = () => {
     setIsLoading(false);
+    // Announce when trailer is ready
+    announce("Trailer loaded and ready to play", "polite");
   };
 
   const handleIframeError = () => {
     setEmbedError(true);
     setIsLoading(false);
+    // Announce error to screen readers
+    announce("Trailer failed to load", "assertive");
   };
 
   const openInYouTube = () => {
@@ -70,7 +84,10 @@ export function TrailerModal() {
 
   return (
     <Dialog open={trailerModal.isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-5xl w-full p-0 bg-black border-white/10">
+      <DialogContent
+        ref={focusTrapRef}
+        className="max-w-5xl w-full p-0 bg-black border-white/10"
+      >
         <DialogHeader className="sr-only">
           <DialogTitle>{trailerModal.animeTitle} - Trailer</DialogTitle>
         </DialogHeader>

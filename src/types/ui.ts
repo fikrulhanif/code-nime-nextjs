@@ -23,4 +23,5 @@ export interface UIState {
   toggleMobileNav: () => void;
   setSearchFocused: (focused: boolean) => void;
   toggleTheme: () => void;
+  initTheme: () => void;
 }

@@ -59,65 +59,30 @@ export function OptimizedImage({
 
   // Determine which image URL to use based on viewport width
   useEffect(() => {
-    const updateImageUrl = () => {
-      let url = "";
+    let url = "";
 
-      if (anime) {
-        const viewportWidth = window.innerWidth;
-
-        // Select image based on viewport width
-        if (viewportWidth < 768) {
-          // Mobile: use small_image_url
-          url =
-            anime.images?.jpg?.small_image_url ||
-            anime.images?.webp?.small_image_url ||
-            anime.images?.jpg?.image_url ||
-            "/placeholder-anime.svg";
-        } else if (viewportWidth >= 768 && viewportWidth < 1024) {
-          // Tablet: use image_url
-          url =
-            anime.images?.jpg?.image_url ||
-            anime.images?.webp?.image_url ||
-            anime.images?.jpg?.large_image_url ||
-            "/placeholder-anime.svg";
-        } else {
-          // Desktop: use large_image_url
-          url =
-            anime.images?.jpg?.large_image_url ||
-            anime.images?.webp?.large_image_url ||
-            anime.images?.jpg?.image_url ||
-            "/placeholder-anime.svg";
-        }
-      } else if (character) {
-        // Characters only have one image size
-        url =
-          character.images?.jpg?.image_url ||
-          character.images?.webp?.image_url ||
-          "/placeholder-character.svg";
-      } else if (src) {
-        // Custom image source
-        url = src;
-      }
-
-      setImageSrc(url);
-      setIsLoading(true);
-      setHasError(false);
-      setLoadTimeout(false);
-    };
-
-    // Set initial image URL
-    updateImageUrl();
-
-    // Update image URL on viewport resize (only for anime/character images)
-    if (anime || character) {
-      const handleResize = () => {
-        updateImageUrl();
-      };
-
-      window.addEventListener("resize", handleResize);
-      return () => window.removeEventListener("resize", handleResize);
+    if (anime) {
+      // Use the highest quality image available
+      // Next.js Image component will handle responsive sizing
+      url =
+        anime.images?.jpg?.large_image_url ||
+        anime.images?.webp?.large_image_url ||
+        anime.images?.jpg?.image_url ||
+        anime.images?.webp?.image_url ||
+        "/placeholder-anime.svg";
+    } else if (character) {
+      // Characters only have one image size
+      url =
+        character.images?.jpg?.image_url ||
+        character.images?.webp?.image_url ||
+        "/placeholder-character.svg";
+    } else if (src) {
+      // Custom image source
+      url = src;
     }
-  }, [anime, character, src, fallbackSrc]);
+
+    setImageSrc(url);
+  }, [anime, character, src]);
 
   // Set 30-second timeout for image loading
   useEffect(() => {

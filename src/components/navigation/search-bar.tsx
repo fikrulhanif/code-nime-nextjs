@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Loader2 } from "lucide-react";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface SearchBarProps {
@@ -17,86 +18,67 @@ export function SearchBar({
 }: SearchBarProps) {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
   const [validationMessage, setValidationMessage] = useState("");
-
-  // Debounce search query by 500ms
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedQuery(query);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [query]);
-
-  // Handle search execution
-  useEffect(() => {
-    if (debouncedQuery.trim() === "") {
-      setValidationMessage("");
-      setIsSearching(false);
-      return;
-    }
-
-    // Validate minimum 3 characters
-    if (debouncedQuery.trim().length < 3) {
-      setValidationMessage("Enter at least 3 characters");
-      setIsSearching(false);
-      return;
-    }
-
-    // Clear validation and execute search
-    setValidationMessage("");
-    setIsSearching(true);
-
-    // Navigate to search results page
-    router.push(`/search?q=${encodeURIComponent(debouncedQuery.trim())}`);
-
-    // Reset loading state after navigation
-    setTimeout(() => setIsSearching(false), 1000);
-  }, [debouncedQuery, router]);
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
       setQuery(value);
-
-      // Show loading indicator immediately when typing
-      if (value.trim().length >= 3) {
-        setIsSearching(true);
-      }
+      setValidationMessage(""); // Clear validation on input
     },
     [],
   );
 
+  const handleSearch = useCallback(() => {
+    const trimmedQuery = query.trim();
+
+    // Validate minimum 3 characters
+    if (trimmedQuery.length === 0) {
+      setValidationMessage("Please enter a search term");
+      return;
+    }
+
+    if (trimmedQuery.length < 3) {
+      setValidationMessage("Enter at least 3 characters");
+      return;
+    }
+
+    // Clear validation and navigate to search page
+    setValidationMessage("");
+    router.push(`/search?q=${encodeURIComponent(trimmedQuery)}`);
+  }, [query, router]);
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-
-      // Validate minimum 3 characters
-      if (query.trim().length < 3) {
-        setValidationMessage("Enter at least 3 characters");
-        return;
-      }
-
-      // Trigger immediate search
-      setDebouncedQuery(query);
+      handleSearch();
     },
-    [query],
+    [handleSearch],
+  );
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleSearch();
+      }
+    },
+    [handleSearch],
   );
 
   return (
     <div className={cn("relative w-full", className)}>
-      <form onSubmit={handleSubmit}>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <form onSubmit={handleSubmit} className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
           <Input
             type="text"
             placeholder={placeholder}
             value={query}
             onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
             className={cn(
-              "pl-9 pr-9",
+              "pl-9",
               validationMessage &&
                 "border-destructive focus-visible:ring-destructive",
             )}
@@ -104,10 +86,10 @@ export function SearchBar({
             aria-invalid={!!validationMessage}
             aria-describedby={validationMessage ? "search-error" : undefined}
           />
-          {isSearching && (
-            <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
-          )}
         </div>
+        <Button type="submit" size="default" className="shrink-0">
+          Search
+        </Button>
       </form>
 
       {/* Validation Message */}

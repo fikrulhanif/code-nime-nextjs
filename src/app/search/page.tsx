@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import dynamic from "next/dynamic";
 import { searchAnime } from "@/lib/api/jikan";
 import { AnimeCard } from "@/components/anime";
 import { AnimeCardSkeleton } from "@/components/anime/anime-card-skeleton";
-import { FilterPanel } from "@/components/filters";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -15,7 +15,32 @@ import { Anime } from "@/types/anime";
 import { Filter, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
-export default function SearchPage() {
+// Dynamically import FilterPanel for code splitting
+// Requirement 20.6: Load filter panel within 500ms of filter toggle click
+const FilterPanel = dynamic(
+  () => {
+    const startTime = performance.now();
+    return import("@/components/filters").then((mod) => {
+      const loadTime = performance.now() - startTime;
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          `[Performance] FilterPanel loaded in ${loadTime.toFixed(2)}ms`,
+        );
+      }
+      return { default: mod.FilterPanel };
+    });
+  },
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center p-8">
+        <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+      </div>
+    ),
+  },
+);
+
+function SearchPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [filters, setFilters] = useState<SearchFilters>(() => {
@@ -218,9 +243,9 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <article className="container mx-auto px-4 py-8">
       {/* Search Header */}
-      <div className="flex flex-col gap-4 mb-6">
+      <header className="flex flex-col gap-4 mb-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-bold">
@@ -238,11 +263,19 @@ export default function SearchPage() {
           {/* Filter Toggle Button */}
           <Sheet open={filterPanelOpen} onOpenChange={setFilterPanelOpen}>
             <SheetTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <Filter className="h-4 w-4" />
+              <Button
+                variant="outline"
+                className="gap-2"
+                aria-label="Toggle filters"
+              >
+                <Filter className="h-4 w-4" aria-hidden="true" />
                 Filters
                 {activeFilterCount > 0 && (
-                  <Badge variant="secondary" className="ml-1 rounded-full">
+                  <Badge
+                    variant="secondary"
+                    className="ml-1 rounded-full"
+                    aria-label={`${activeFilterCount} active filters`}
+                  >
                     {activeFilterCount}
                   </Badge>
                 )}
@@ -251,6 +284,7 @@ export default function SearchPage() {
             <SheetContent
               side="right"
               className="w-full sm:max-w-md overflow-y-auto"
+              aria-label="Filter panel"
             >
               <FilterPanel
                 filters={filters}
@@ -260,11 +294,11 @@ export default function SearchPage() {
             </SheetContent>
           </Sheet>
         </div>
-      </div>
+      </header>
 
       {/* Loading State */}
       {isInitialLoading && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
           <AnimeCardSkeleton count={12} />
         </div>
       )}
@@ -299,7 +333,7 @@ export default function SearchPage() {
       {/* Results Grid */}
       {!isInitialLoading && allResults.length > 0 && (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {allResults.map((anime) => (
               <AnimeCard key={anime.mal_id} anime={anime} />
             ))}
@@ -308,8 +342,8 @@ export default function SearchPage() {
           {/* Infinite Scroll Trigger */}
           <div ref={observerTarget} className="mt-8 flex justify-center">
             {isLoadingMore && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-                <AnimeCardSkeleton count={3} />
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 w-full">
+                <AnimeCardSkeleton count={6} />
               </div>
             )}
             {!hasMore && allResults.length > 0 && (
@@ -318,7 +352,7 @@ export default function SearchPage() {
           </div>
         </>
       )}
-    </div>
+    </article>
   );
 }
 
@@ -385,4 +419,21 @@ function parseFiltersFromURL(searchParams: URLSearchParams): SearchFilters {
   }
 
   return filters;
+}
+
+// Wrap in Suspense to handle useSearchParams
+export default function SearchPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            <AnimeCardSkeleton count={12} />
+          </div>
+        </div>
+      }
+    >
+      <SearchPageContent />
+    </Suspense>
+  );
 }
