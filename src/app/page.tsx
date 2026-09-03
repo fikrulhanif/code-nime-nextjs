@@ -120,7 +120,7 @@ export default function Home() {
         title="Trending Now"
         anime={trendingAnime || []}
         isLoading={trendingLoading}
-        error={trendingError as Error | null}
+        error={(trendingAnime && trendingAnime.length > 0) ? null : (trendingError as Error | null)}
         onRetry={() => refetchTrending()}
       />
 
@@ -138,7 +138,7 @@ export default function Home() {
         title="This Season"
         anime={seasonalAnime || []}
         isLoading={seasonalLoading}
-        error={seasonalError as Error | null}
+        error={(seasonalAnime && seasonalAnime.length > 0) ? null : (seasonalError as Error | null)}
         onRetry={() => refetchSeasonal()}
       />
     </div>

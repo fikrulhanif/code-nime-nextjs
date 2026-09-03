@@ -123,17 +123,26 @@ function getDefaultErrorMessage(status: number): string {
     case 500:
     case 502:
     case 503:
-    case 504:
       return "Server error. Please try again later.";
+    case 504:
+      return "Jikan failed to connect to MyAnimeList. MyAnimeList may be down/unavailable or refuses to connect";
     default:
       return "An error occurred";
   }
 }
 
+// Helper to detect Jikan-specific 504 (MAL unavailable) errors
+export function isJikanMALUnavailableError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const e = error as { status?: number; type?: string };
+  return e.status === 504 && e.type === "BadResponseException";
+}
+
 // Retry logic with exponential backoff
+// For Jikan 504 errors (MAL unavailable), use a longer fixed delay
 async function retryWithBackoff<T>(
   fn: () => Promise<T>,
-  maxRetries: number = 3,
+  maxRetries: number = 2,
   baseDelay: number = 1000,
 ): Promise<T> {
   let lastError: unknown;
@@ -143,6 +152,17 @@ async function retryWithBackoff<T>(
       return await fn();
     } catch (error) {
       lastError = error;
+
+      // Handle Jikan-specific 504 (MAL scraping failed) - don't keep retrying
+      // because MAL being unavailable won't resolve in seconds
+      if (isJikanMALUnavailableError(error)) {
+        if (attempt < maxRetries) {
+          // Wait longer for MAL issues (5s), only retry once
+          await new Promise((resolve) => setTimeout(resolve, 5000));
+          continue;
+        }
+        throw error;
+      }
 
       if (axios.isAxiosError(error)) {
         const status = error.response?.status;

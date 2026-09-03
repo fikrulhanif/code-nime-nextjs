@@ -10,7 +10,7 @@ import { FilterPanel } from "@/components/filters";
 import { Button } from "@/components/ui/button";
 import { SearchFilters, DEFAULT_FILTERS } from "@/types/filters";
 import { Anime } from "@/types/anime";
-import { AlertCircle, Search as SearchIcon } from "lucide-react";
+import { AlertCircle, Search as SearchIcon, WifiOff, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 
@@ -35,6 +35,8 @@ function FilterPageContent() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const observerTarget = useRef<HTMLDivElement>(null);
 
+  const [autoRetryCountdown, setAutoRetryCountdown] = useState<number | null>(null);
+
   // Fetch search results with APPLIED filters only
   const {
     data: searchData,
@@ -55,6 +57,30 @@ function FilterPageContent() {
     },
     enabled: !appliedFilters.query || appliedFilters.query.length >= 3,
   });
+
+  // Detect MAL-unavailable (504) from searchData.error field
+  const isMALUnavailable = !!(searchData?.error && searchData.error.status === 504);
+
+  // Auto-retry countdown when MAL is unavailable
+  useEffect(() => {
+    if (!isMALUnavailable) {
+      setAutoRetryCountdown(null);
+      return;
+    }
+    // Start 30s countdown then auto-retry
+    setAutoRetryCountdown(30);
+    const interval = setInterval(() => {
+      setAutoRetryCountdown((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(interval);
+          refetchInitial();
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isMALUnavailable, refetchInitial]);
 
   // Update results when initial data changes
   useEffect(() => {
@@ -304,7 +330,39 @@ function FilterPageContent() {
             </div>
           )}
 
-          {/* Error State */}
+          {/* MAL Unavailable Banner — soft warning, not full error */}
+          {isMALUnavailable && (
+            <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+              <div className="flex flex-col items-center gap-3 max-w-md text-center p-6 rounded-xl border border-yellow-500/30 bg-yellow-500/5">
+                <WifiOff className="h-12 w-12 text-yellow-500" />
+                <p className="text-lg font-semibold text-yellow-500">
+                  MyAnimeList tidak dapat dijangkau saat ini
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Jikan API gagal terhubung ke MyAnimeList. Ini bukan masalah
+                  pada website — MyAnimeList sedang down atau membatasi akses.
+                  Coba beberapa saat lagi.
+                </p>
+                <div className="flex items-center gap-3 mt-2">
+                  <Button
+                    onClick={() => refetchInitial()}
+                    variant="outline"
+                    className="border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Coba Lagi
+                  </Button>
+                  {autoRetryCountdown !== null && (
+                    <span className="text-xs text-muted-foreground">
+                      Auto-retry dalam {autoRetryCountdown}s
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Error State — for non-MAL errors */}
           {initialError && (
             <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
               <AlertCircle className="h-12 w-12 text-destructive" />

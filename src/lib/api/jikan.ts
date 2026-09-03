@@ -1,6 +1,6 @@
 // Jikan API service functions
 
-import { makeRequest } from "./client";
+import { makeRequest, isJikanMALUnavailableError } from "./client";
 import {
   Anime,
   AnimeDetail,
@@ -15,8 +15,10 @@ import { JikanAPIResponse, PaginationParams } from "@/types/api";
 import { SearchFilters } from "@/types/filters";
 
 // Fetch trending anime (top airing)
+// NOTE: filter=airing causes 504 when MAL is unavailable — falls back to cached top/anime
 export async function fetchTrendingAnime(limit: number = 10): Promise<Anime[]> {
   try {
+    // Try airing filter first (more relevant if MAL is up)
     const response = await makeRequest<JikanAPIResponse<Anime[]>>({
       method: "GET",
       url: "/top/anime",
@@ -33,6 +35,21 @@ export async function fetchTrendingAnime(limit: number = 10): Promise<Anime[]> {
 
     return response.data;
   } catch (error) {
+    // If MAL is unavailable (504), fall back to cached top/anime without filter
+    if (isJikanMALUnavailableError(error)) {
+      console.warn("fetchTrendingAnime: MAL unavailable, falling back to cached top/anime");
+      try {
+        const fallback = await makeRequest<JikanAPIResponse<Anime[]>>({
+          method: "GET",
+          url: "/top/anime",
+          params: { limit },
+        });
+        return fallback?.data || [];
+      } catch (fallbackErr) {
+        console.error("fetchTrendingAnime: fallback also failed", fallbackErr);
+        return [];
+      }
+    }
     console.error("fetchTrendingAnime error:", error);
     return [];
   }
@@ -64,6 +81,7 @@ export async function fetchTopAnime(limit: number = 10): Promise<Anime[]> {
 }
 
 // Fetch seasonal anime (current season)
+// Falls back to /top/anime if seasonal endpoints are unavailable (MAL 504)
 export async function fetchSeasonalAnime(
   year?: number,
   season?: Season,
@@ -125,6 +143,31 @@ export async function fetchSeasonalAnime(
     console.log("fetchSeasonalAnime: Success -", response.data.length, "items");
     return response.data;
   } catch (error) {
+    // If MAL is unavailable (504), fall back to cached top/anime
+    if (isJikanMALUnavailableError(error)) {
+      console.warn(
+        "fetchSeasonalAnime: MAL unavailable (504), falling back to cached /top/anime",
+      );
+      try {
+        const fallback = await makeRequest<JikanAPIResponse<Anime[]>>({
+          method: "GET",
+          url: "/top/anime",
+          params: { limit: Math.min(limit, 25) },
+        });
+        if (fallback?.data && fallback.data.length > 0) {
+          console.log(
+            "fetchSeasonalAnime: fallback succeeded -",
+            fallback.data.length,
+            "items",
+          );
+          return fallback.data;
+        }
+      } catch (fallbackErr) {
+        console.error("fetchSeasonalAnime: fallback also failed", fallbackErr);
+      }
+      return [];
+    }
+
     console.error("fetchSeasonalAnime error:", error);
     // Log more details about the error
     if (error instanceof Error) {
@@ -152,6 +195,7 @@ export async function searchAnime(
 ): Promise<{
   data: Anime[];
   pagination: JikanAPIResponse<Anime[]>["pagination"];
+  error?: { status: number; message: string };
 }> {
   const params: Record<string, string | number | undefined> = {
     q: query,
@@ -190,16 +234,34 @@ export async function searchAnime(
     params.sort = filters.orderBy || "desc";
   }
 
-  const response = await makeRequest<JikanAPIResponse<Anime[]>>({
-    method: "GET",
-    url: "/anime",
-    params,
-  });
+  try {
+    const response = await makeRequest<JikanAPIResponse<Anime[]>>({
+      method: "GET",
+      url: "/anime",
+      params,
+    });
 
-  return {
-    data: response.data,
-    pagination: response.pagination,
-  };
+    return {
+      data: response.data,
+      pagination: response.pagination,
+    };
+  } catch (error) {
+    // For MAL-unavailable errors, return structured empty result instead of throwing
+    if (isJikanMALUnavailableError(error)) {
+      console.warn("searchAnime: MAL unavailable (504), returning empty result");
+      return {
+        data: [],
+        pagination: undefined,
+        error: {
+          status: 504,
+          message:
+            "Jikan failed to connect to MyAnimeList. MyAnimeList may be down/unavailable or refuses to connect",
+        },
+      };
+    }
+    // Re-throw other errors so callers can handle them
+    throw error;
+  }
 }
 
 // Fetch anime details by ID
