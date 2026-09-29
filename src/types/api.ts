@@ -1,4 +1,5 @@
 // API response and error type definitions
+// Note: JikanAPIResponse is kept for backward compatibility after AniList migration
 
 export interface JikanAPIResponse<T> {
   data: T;

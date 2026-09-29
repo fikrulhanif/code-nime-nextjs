@@ -11,7 +11,7 @@ export {
   GENERIC_ERROR_MESSAGE,
 } from "./validator";
 
-// Re-export for backward compatibility with jikan.ts
+// Re-export for backward compatibility
 export function sanitizeAnimeData<T extends Record<string, any>>(data: T): T {
   if (!data || typeof data !== "object") return data;
 

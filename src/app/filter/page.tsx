@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { searchAnime } from "@/lib/api/jikan";
+import { searchAnime } from "@/lib/api/anilist";
 import { AnimeCard } from "@/components/anime";
 import { AnimeCardSkeleton } from "@/components/anime/anime-card-skeleton";
 import { FilterPanel } from "@/components/filters";
@@ -58,12 +58,12 @@ function FilterPageContent() {
     enabled: !appliedFilters.query || appliedFilters.query.length >= 3,
   });
 
-  // Detect MAL-unavailable (504) from searchData.error field
-  const isMALUnavailable = !!(searchData?.error && searchData.error.status === 504);
+  // Detect API error from searchData.error field
+  const isApiError = !!searchData?.error;
 
-  // Auto-retry countdown when MAL is unavailable
+  // Auto-retry countdown when API error occurs
   useEffect(() => {
-    if (!isMALUnavailable) {
+    if (!isApiError) {
       setAutoRetryCountdown(null);
       return;
     }
@@ -80,7 +80,7 @@ function FilterPageContent() {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [isMALUnavailable, refetchInitial]);
+  }, [isApiError, refetchInitial]);
 
   // Update results when initial data changes
   useEffect(() => {
@@ -330,18 +330,16 @@ function FilterPageContent() {
             </div>
           )}
 
-          {/* MAL Unavailable Banner — soft warning, not full error */}
-          {isMALUnavailable && (
+          {/* API Error Banner — soft warning */}
+          {isApiError && (
             <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
               <div className="flex flex-col items-center gap-3 max-w-md text-center p-6 rounded-xl border border-yellow-500/30 bg-yellow-500/5">
                 <WifiOff className="h-12 w-12 text-yellow-500" />
                 <p className="text-lg font-semibold text-yellow-500">
-                  MyAnimeList tidak dapat dijangkau saat ini
+                  Layanan API Tidak Dapat Dijangkau
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Jikan API gagal terhubung ke MyAnimeList. Ini bukan masalah
-                  pada website — MyAnimeList sedang down atau membatasi akses.
-                  Coba beberapa saat lagi.
+                  Gagal memuat data anime dari AniList. Silakan coba beberapa saat lagi.
                 </p>
                 <div className="flex items-center gap-3 mt-2">
                   <Button

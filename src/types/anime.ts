@@ -1,4 +1,5 @@
-// Anime type definitions based on Jikan API v4 response structure
+// Anime type definitions for CodeNime
+// Compatible with both AniList API and legacy data structures
 
 export type AnimeType = "tv" | "movie" | "ova" | "special" | "ona" | "music";
 export type AnimeStatus = "airing" | "complete" | "upcoming";
@@ -41,6 +42,9 @@ export interface Demographic {
 
 export interface Anime {
   mal_id: number;
+  id?: number;
+  idMal?: number | null;
+  bannerImage?: string | null;
   title: string;
   title_english: string | null;
   title_japanese: string | null;

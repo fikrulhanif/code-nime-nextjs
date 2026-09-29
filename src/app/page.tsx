@@ -6,7 +6,7 @@ import {
   fetchTopAnime,
   fetchTrendingAnime,
   fetchSeasonalAnime,
-} from "@/lib/api/jikan";
+} from "@/lib/api/anilist";
 import { HeroBanner, SectionCarousel } from "@/components/home";
 import { HeroSkeleton } from "@/components/loading";
 

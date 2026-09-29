@@ -18,11 +18,13 @@
 
 **CodeNime** is a simple anime search website that I built just for fun. The main idea was to create a project without using a database and instead fetch data from a public API. I wanted to learn how to work with external APIs and handle their data properly.
 
-The site uses the [Jikan API](https://jikan.moe/) (unofficial MyAnimeList API) to get anime information. You can search for anime, browse by season, check out trending shows, and see detailed information about each anime including characters and episodes.
+The site uses the official [AniList GraphQL API](https://graphql.anilist.co) to get anime information. You can search for anime, browse by season, check out trending shows, and see detailed information about each anime including characters and streaming episodes.
+
+> **Note:** This project was migrated from Jikan API (MyAnimeList scraper) to AniList's official API in September 2026 for better reliability and stability.
 
 This was a learning project to practice:
 
-- Working with public APIs and handling rate limits
+- Working with GraphQL APIs and handling pagination
 - Managing server state with React Query
 - Building a responsive UI with Tailwind CSS
 - Implementing features like search, filters, and pagination without a backend database
@@ -106,7 +108,7 @@ Nothing fancy, just a fun side project to explore how to build a data-driven app
 
 ### API
 
-- **[Jikan API v4](https://jikan.moe/)** - Unofficial MyAnimeList API
+- **[AniList GraphQL API](https://anilist.co/)** - Official AniList API for anime data
 
 ---
 
@@ -213,12 +215,7 @@ code-nime/
 
 ### Environment Variables
 
-Create a `.env.local` file in the root directory (optional, as the app uses public API):
-
-```env
-# Optional: Add custom API endpoint if needed
-NEXT_PUBLIC_API_BASE_URL=https://api.jikan.moe/v4
-```
+No environment variables required. The app uses the public AniList GraphQL API at `https://graphql.anilist.co`.
 
 ### Next.js Configuration
 
@@ -237,8 +234,8 @@ Building this project helped me understand:
 
 ### API Integration
 
-- How to work with public REST APIs (Jikan API)
-- Handling API rate limits (3 requests/second)
+- How to work with GraphQL APIs (AniList API)
+- Building and optimizing GraphQL queries
 - Implementing retry logic and error handling
 - Caching strategies to reduce unnecessary API calls
 
@@ -284,8 +281,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 
-- **[Jikan API](https://jikan.moe/)** - For providing the anime data
-- **[MyAnimeList](https://myanimelist.net/)** - Original data source
+- **[AniList](https://anilist.co/)** - For providing the official anime data API
 - **[Vercel](https://vercel.com/)** - Hosting platform
 - **[shadcn/ui](https://ui.shadcn.com/)** - UI component inspiration
 

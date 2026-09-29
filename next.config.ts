@@ -13,6 +13,16 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
+        hostname: "s4.anilist.co",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.crunchyroll.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "cdn.myanimelist.net",
         pathname: "/images/**",
       },

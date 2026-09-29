@@ -2,35 +2,12 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { makeRequest } from "@/lib/api/client";
-import { JikanAPIResponse } from "@/types/api";
+import { fetchUpcomingAnime } from "@/lib/api/anilist";
 import { Anime } from "@/types/anime";
 import { AnimeCard } from "@/components/anime";
 import { CardSkeleton } from "@/components/loading";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
-async function fetchUpcomingAnime(limit: number = 25): Promise<Anime[]> {
-  try {
-    const response = await makeRequest<JikanAPIResponse<Anime[]>>({
-      method: "GET",
-      url: "/seasons/upcoming",
-      params: {
-        limit: Math.min(limit, 25), // Jikan API max limit is 25
-      },
-    });
-
-    if (!response || !response.data) {
-      console.error("fetchUpcomingAnime: Invalid response", response);
-      return [];
-    }
-
-    return response.data;
-  } catch (error) {
-    console.error("fetchUpcomingAnime error:", error);
-    return [];
-  }
-}
 
 export default function UpcomingPage() {
   const [filter, setFilter] = useState<string>("all");

@@ -72,6 +72,7 @@ logs/
 # AI Assistant files
 AGENTS.md
 CLAUDE.md
+MIGRATION_ANILIST.md
 
 # OS
 .DS_Store

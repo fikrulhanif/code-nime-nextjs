@@ -81,22 +81,32 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <a
-                  href="https://jikan.moe/"
+                  href="https://anilist.co/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
-                  Jikan API
+                  AniList
                 </a>
               </li>
               <li>
                 <a
-                  href="https://myanimelist.net/"
+                  href="https://anilist.gitbook.io/anilist-apiv2-docs/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
-                  MyAnimeList.net
+                  API Documentation
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/fikrulhanif/code-nime"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  GitHub Repository
                 </a>
               </li>
             </ul>
@@ -106,7 +116,7 @@ export function Footer() {
           <div>
             <h3 className="font-semibold mb-3">About</h3>
             <p className="text-sm text-muted-foreground mb-3">
-              Built with Next.js, TypeScript, and powered by Jikan API.
+              Built with Next.js, TypeScript, and powered by AniList API.
             </p>
             <a
               href="https://github.com/fikrulhanif"

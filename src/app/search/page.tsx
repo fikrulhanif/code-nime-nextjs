@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { searchAnime } from "@/lib/api/jikan";
+import { searchAnime } from "@/lib/api/anilist";
 import { AnimeCard } from "@/components/anime";
 import { AnimeCardSkeleton } from "@/components/anime/anime-card-skeleton";
 import { Button } from "@/components/ui/button";

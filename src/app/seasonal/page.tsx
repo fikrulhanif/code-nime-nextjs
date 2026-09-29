@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchSeasonalAnime } from "@/lib/api/jikan";
+import { fetchSeasonalAnime } from "@/lib/api/anilist";
 import { AnimeCard } from "@/components/anime";
 import { CardSkeleton } from "@/components/loading";
 import { Button } from "@/components/ui/button";

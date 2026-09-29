@@ -125,21 +125,21 @@ function getDefaultErrorMessage(status: number): string {
     case 503:
       return "Server error. Please try again later.";
     case 504:
-      return "Jikan failed to connect to MyAnimeList. MyAnimeList may be down/unavailable or refuses to connect";
+      return "Gateway timeout. The server took too long to respond. Please try again later.";
     default:
       return "An error occurred";
   }
 }
 
-// Helper to detect Jikan-specific 504 (MAL unavailable) errors
-export function isJikanMALUnavailableError(error: unknown): boolean {
+// Helper to detect 504 (Gateway Timeout) errors
+export function isGatewayTimeoutError(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   const e = error as { status?: number; type?: string };
-  return e.status === 504 && e.type === "BadResponseException";
+  return e.status === 504;
 }
 
 // Retry logic with exponential backoff
-// For Jikan 504 errors (MAL unavailable), use a longer fixed delay
+// For 504 errors (gateway timeout), use a longer fixed delay
 async function retryWithBackoff<T>(
   fn: () => Promise<T>,
   maxRetries: number = 2,
@@ -153,11 +153,11 @@ async function retryWithBackoff<T>(
     } catch (error) {
       lastError = error;
 
-      // Handle Jikan-specific 504 (MAL scraping failed) - don't keep retrying
-      // because MAL being unavailable won't resolve in seconds
-      if (isJikanMALUnavailableError(error)) {
+      // Handle 504 (gateway timeout) - don't keep retrying
+      // because server being unavailable won't resolve in seconds
+      if (isGatewayTimeoutError(error)) {
         if (attempt < maxRetries) {
-          // Wait longer for MAL issues (5s), only retry once
+          // Wait longer for timeout issues (5s), only retry once
           await new Promise((resolve) => setTimeout(resolve, 5000));
           continue;
         }
@@ -193,6 +193,8 @@ async function retryWithBackoff<T>(
 // Create Axios instance with configuration
 const rateLimiter = new RateLimiter();
 
+// Note: This client is deprecated after migration to AniList API
+// Kept for legacy compatibility during transition period
 const apiClient: AxiosInstance = axios.create({
   baseURL: "https://api.jikan.moe/v4",
   timeout: 30000, // 30 seconds

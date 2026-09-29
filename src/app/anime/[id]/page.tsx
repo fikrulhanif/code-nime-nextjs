@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { fetchAnimeDetails } from "@/lib/api/jikan";
+import { fetchAnimeDetails } from "@/lib/api/anilist";
 import AnimeDetailClient from "./anime-detail-client";
 
 interface PageProps {

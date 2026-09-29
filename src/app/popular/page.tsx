@@ -2,43 +2,12 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { makeRequest } from "@/lib/api/client";
-import { JikanAPIResponse } from "@/types/api";
+import { fetchTopAnimeWithPage } from "@/lib/api/anilist";
 import { Anime } from "@/types/anime";
 import { AnimeCard } from "@/components/anime";
 import { CardSkeleton } from "@/components/loading";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
-// Fetch top anime with pagination support
-async function fetchTopAnimeWithPage(
-  page: number = 1,
-  limit: number = 12,
-): Promise<{ data: Anime[]; hasNextPage: boolean }> {
-  try {
-    const response = await makeRequest<JikanAPIResponse<Anime[]>>({
-      method: "GET",
-      url: "/top/anime",
-      params: {
-        page,
-        limit,
-      },
-    });
-
-    if (!response || !response.data) {
-      console.error("fetchTopAnimeWithPage: Invalid response", response);
-      return { data: [], hasNextPage: false };
-    }
-
-    return {
-      data: response.data,
-      hasNextPage: response.pagination?.has_next_page || false,
-    };
-  } catch (error) {
-    console.error("fetchTopAnimeWithPage error:", error);
-    return { data: [], hasNextPage: false };
-  }
-}
 
 export default function PopularPage() {
   const [page, setPage] = useState(1);
@@ -88,7 +57,7 @@ export default function PopularPage() {
     { value: "music", label: "Music" },
   ];
 
-  const totalPages = 10; // Jikan API limit
+  const totalPages = 10;
 
   return (
     <div className="container mx-auto px-4 py-8">

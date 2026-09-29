@@ -6,7 +6,7 @@ import {
   fetchAnimeCharacters,
   fetchAnimeEpisodes,
   fetchAnimeRecommendations,
-} from "@/lib/api/jikan";
+} from "@/lib/api/anilist";
 import { DetailSkeleton } from "@/components/loading/detail-skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
