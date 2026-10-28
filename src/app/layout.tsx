@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
@@ -8,6 +8,7 @@ import { MobileNav } from "@/components/navigation/mobile-nav";
 import { Footer } from "@/components/navigation/footer";
 import { TrailerModal } from "@/components/ui/trailer-modal";
 import { PageTransition } from "@/components/ui/page-transition";
+import { PwaRegister } from "@/components/pwa-register";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,10 +20,31 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  themeColor: "#7c3aed",
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
   title: "CodeNime",
   description:
     "Discover, browse, and track anime with CodeNime discovery platform",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "CodeNime",
+  },
+  icons: {
+    icon: [
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -54,6 +76,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col pt-16">
         <Providers>
+          <PwaRegister />
           <Header />
           <MobileNav />
           <PageTransition>
